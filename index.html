@@ -3,441 +3,1423 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shared Private Home</title>
+<title>Observatory of Disappearing Things</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&family=IBM+Plex+Mono:wght@300;400;500;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Gothic+A1:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/suneditor/2.46.3/css/suneditor.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suneditor/2.46.3/suneditor.min.js"></script>
 <style>
-    /* --- 컬러 테마 변수 --- */
-    :root {
-        /* 기본: Dark Space 테마 */
-        --bg-color: #0b0f19;
-        --card-bg: #1a202c;
-        --text-main: #e2e8f0;
-        --text-muted: #a0aec0;
-        --accent: #3182ce;
-        --border-color: #2d3748;
-    }
-    [data-theme="light-candy"] {
-        /* 원본 GIF 느낌의 Light 테마 */
-        --bg-color: #f4f5f7;
-        --card-bg: #ffffff;
-        --text-main: #2d3748;
-        --text-muted: #718096;
-        --accent: #ed8936;
-        --border-color: #e2e8f0;
-    }
-    [data-theme="hacker"] {
-        /* 해커/터미널 테마 */
-        --bg-color: #000000;
-        --card-bg: #0a0a0a;
-        --text-main: #00ff00;
-        --text-muted: #008800;
-        --accent: #00aa00;
-        --border-color: #004400;
-    }
+@font-face { font-family: 'Artemis'; src: local('Artemis'); }
 
-    /* --- 기본 스타일 --- */
-    body { margin: 0; padding: 20px; font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg-color); color: var(--text-main); transition: all 0.3s ease; }
-    button, input, textarea, select { font-family: inherit; }
-    .btn { padding: 8px 15px; background: var(--accent); color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: 0.2s; font-weight: bold; }
-    .btn:hover { opacity: 0.8; }
-    .btn-small { padding: 5px 10px; font-size: 12px; cursor: pointer; border-radius: 3px; border: 1px solid var(--border-color); background: transparent; color: var(--text-main); }
-    .btn-small:hover { background: var(--border-color); }
-    .input-box { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-main); box-sizing: border-box; }
-    
-    /* 관리자 전용 요소 숨김 처리 */
-    .admin-only { display: none; }
+:root {
+    --bg: #0a0a0a;
+    --bg-card: rgba(20,20,20,0.75);
+    --text: #d4d4d4;
+    --text-dim: #666;
+    --accent: #d4d4d4;
+    --border: #2a2a2a;
+    --grain-opacity: 0.04;
+    --eng-font: 'Artemis', 'Courier Prime', 'Space Mono', monospace;
+    --kr-font: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
 
-    /* --- 인트로 화면 (1) --- */
-    #intro-screen {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #000; color: #0f0; font-family: monospace; font-size: 1.2rem;
-        z-index: 9999; display: flex; flex-direction: column; justify-content: center; padding: 10%; box-sizing: border-box; cursor: pointer;
-    }
-    #typing-text { white-space: pre-wrap; line-height: 1.5; }
-    .cursor { display: inline-block; width: 10px; height: 1em; background: #0f0; animation: blink 1s step-end infinite; vertical-align: bottom; }
-    @keyframes blink { 50% { opacity: 0; } }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+    font-family: var(--eng-font);
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    cursor: default;
+}
+.kr { font-family: var(--kr-font); }
 
-    /* --- 메인 대시보드 --- */
-    #dashboard { max-width: 1000px; margin: 0 auto; display: none; flex-direction: column; gap: 20px; }
-    
-    .header-widget { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; }
-    
-    .tools-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .card { background: var(--card-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    
-    /* 메인 이미지 배너 (4) */
-    #main-banner { height: 250px; border-radius: 15px; background-size: cover; background-position: center; position: relative; border: 1px solid var(--border-color); }
-    .banner-overlay { position: absolute; top: 10px; right: 10px; }
+/* ===== GRAIN + NOISE OVERLAY ===== */
+.grain {
+    position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: var(--grain-opacity); z-index: 9999; pointer-events: none;
+    animation: grainShift 0.5s steps(5) infinite;
+}
+@keyframes grainShift { 0% { transform: translate(0,0); } 100% { transform: translate(-5%,-5%); } }
 
-    /* 테마 선택기 (5) */
-    .theme-selector { padding: 5px; border-radius: 5px; background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color); }
+/* ===== STARS ===== */
+.stars-layer { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.star {
+    position: absolute; background: #fff; border-radius: 50%;
+    animation: twinkle var(--d) ease-in-out infinite; opacity: 0;
+}
+@keyframes twinkle { 0%,100% { opacity: 0; } 50% { opacity: var(--o); } }
 
-    /* 게시판 */
-    .post-list { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
-    .post-item { border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; display: flex; gap: 15px; align-items: flex-start; background: var(--bg-color); }
-    .post-thumb { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: var(--card-bg); border: 1px solid var(--border-color); }
-    .post-content { flex: 1; min-width: 0; }
-    .post-title { margin: 0 0 5px 0; font-size: 1.1rem; word-break: break-all; }
-    .post-date { font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; }
-    .post-body { margin: 0; font-size: 14px; white-space: pre-wrap; word-break: break-word; line-height: 1.6; }
-    .post-actions { display: flex; gap: 5px; flex-shrink: 0; }
+/* ===== DECORATIVE CELESTIAL OBJECTS ===== */
+.celestial {
+    position: fixed; pointer-events: none; z-index: 1; border-radius: 50%;
+    filter: grayscale(0.6) brightness(0.5);
+}
+.planet-1 {
+    width: 120px; height: 120px; top: -10px; left: 20px;
+    background: radial-gradient(circle at 35% 35%, #555, #222, #111);
+    box-shadow: inset -15px -10px 20px rgba(0,0,0,0.8), 0 0 40px rgba(255,255,255,0.03);
+    filter: grayscale(0.3) brightness(0.6);
+}
+.planet-2 {
+    width: 220px; height: 220px; top: 300px; right: -80px;
+    background: radial-gradient(circle at 40% 30%, #666, #333, #1a1a1a);
+    box-shadow: inset -20px -15px 30px rgba(0,0,0,0.9);
+    filter: grayscale(0.5) brightness(0.45);
+    clip-path: inset(0 35% 0 0);
+}
+.planet-3 {
+    width: 200px; height: 200px; bottom: -60px; right: -60px;
+    background: radial-gradient(circle at 30% 25%, #777, #444, #1a1a1a);
+    box-shadow: inset -25px -20px 35px rgba(0,0,0,0.9);
+    filter: grayscale(0.4) brightness(0.4);
+}
+.comet {
+    position: fixed; width: 350px; height: 1px; bottom: 35%; left: 5%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), rgba(255,255,255,0.15), rgba(255,255,255,0.03));
+    transform: rotate(-12deg); z-index: 1; pointer-events: none;
+    box-shadow: 0 0 8px rgba(255,255,255,0.05);
+}
 
-    /* --- 큰 창 글쓰기 (2) --- */
-    #write-screen { max-width: 1000px; margin: 0 auto; display: none; flex-direction: column; gap: 15px; height: 90vh; }
-    .editor-wrapper { display: flex; flex-direction: column; gap: 10px; flex: 1; background: var(--card-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); }
-    #post-body-input { flex: 1; resize: none; font-size: 1rem; line-height: 1.6; padding: 15px; }
+/* ===== GRID LINES (subtle) ===== */
+.grid-lines {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 1; pointer-events: none; opacity: 0.04;
+    background-image:
+        linear-gradient(90deg, var(--text) 1px, transparent 1px),
+        linear-gradient(0deg, var(--text) 1px, transparent 1px);
+    background-size: 200px 200px;
+}
+.grid-labels {
+    position: fixed; z-index: 1; pointer-events: none; opacity: 0.15;
+    font-family: var(--eng-font); font-size: 0.55rem; color: var(--text);
+}
 
-    /* --- 모달 (비밀번호 입력 등) --- */
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); padding: 30px; border-radius: 15px; width: 350px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+/* ===== SATELLITE LABELS (1989N1 etc) ===== */
+.sat-label {
+    position: fixed; z-index: 2; pointer-events: none;
+    font-family: var(--eng-font); font-size: 0.7rem; color: var(--text); opacity: 0.35;
+    letter-spacing: 1px;
+}
+.sat-dot {
+    position: fixed; z-index: 2; pointer-events: none;
+    width: 5px; height: 5px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3);
+    background: transparent;
+}
+
+/* ===== INTRO ===== */
+#intro-screen {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: var(--bg); z-index: 99999;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    transition: opacity 1.2s ease;
+}
+.intro-text {
+    font-family: var(--eng-font); font-size: 0.85rem; line-height: 2.4;
+    color: var(--text); opacity: 0.8; text-align: center; min-height: 100px;
+    letter-spacing: 0.5px; max-width: 500px;
+}
+.enter-btn {
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+    padding: 14px 50px; font-family: var(--eng-font); font-size: 0.8rem;
+    letter-spacing: 4px; cursor: pointer; transition: all 0.4s; display: none;
+    text-transform: uppercase;
+}
+.enter-btn:hover {
+    border-color: var(--text); background: rgba(255,255,255,0.05);
+    box-shadow: 0 0 20px rgba(255,255,255,0.03);
+}
+
+/* ===== MAIN LAYOUT ===== */
+#main-system { display: flex; height: 100vh; opacity: 0; visibility: hidden; transition: opacity 1.5s ease; flex-direction: column; position: relative; z-index: 5; }
+
+/* TOP NAV */
+.top-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 30px; background: transparent; z-index: 10;
+    position: absolute; top: 0; left: 0; right: 0;
+}
+.top-nav h1 {
+    font-family: var(--eng-font); color: var(--text); font-size: 0.75rem;
+    font-weight: 400; cursor: pointer; letter-spacing: 3px; opacity: 0.5;
+    text-transform: uppercase;
+}
+.nav-buttons button {
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 4px 12px; border-radius: 0; cursor: pointer; margin-left: 8px;
+    font-family: var(--eng-font); font-size: 0.65rem; letter-spacing: 1px;
+    transition: all 0.3s; text-transform: uppercase;
+}
+.nav-buttons button:hover { border-color: var(--text); color: var(--text); }
+
+/* CONTENT WRAPPER */
+.main-content-wrapper { display: flex; flex: 1; overflow: hidden; position: relative; padding-top: 45px; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+    width: 260px; background: transparent; border-right: none;
+    padding: 20px; overflow-y: auto; z-index: 10;
+    display: none; /* hidden by default, toggled */
+    position: absolute; left: 0; top: 45px; bottom: 0;
+    background: rgba(10,10,10,0.95); backdrop-filter: blur(10px);
+    border-right: 1px solid var(--border);
+}
+.sidebar.open { display: block; }
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+.sidebar-toggle {
+    position: fixed; left: 15px; bottom: 15px; z-index: 100;
+    background: rgba(10,10,10,0.8); border: 1px solid var(--border);
+    color: var(--text-dim); width: 32px; height: 32px; font-size: 0.8rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: 0.3s; font-family: var(--eng-font);
+}
+.sidebar-toggle:hover { border-color: var(--text); color: var(--text); }
+
+.home-menu {
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); font-size: 0.7rem; letter-spacing: 2px;
+    cursor: pointer; transition: 0.3s; text-transform: uppercase;
+    font-family: var(--eng-font);
+}
+.home-menu:hover { color: var(--text); }
+
+details { margin-bottom: 0; }
+summary {
+    padding: 10px 0; cursor: pointer; font-weight: 400; color: var(--text);
+    list-style: none; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.04); font-family: var(--eng-font);
+    font-size: 0.78rem; letter-spacing: 1px; transition: 0.3s;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after { content: '+'; font-size: 0.75rem; color: var(--text-dim); transition: 0.3s; }
+details[open] summary::after { content: '-'; }
+summary:hover { color: var(--text); }
+
+.sub-category {
+    padding: 8px 0 8px 12px; font-size: 0.78rem; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.02);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--text-dim); transition: 0.2s; font-family: var(--kr-font);
+}
+.sub-category:hover { color: var(--text); }
+.sub-name { flex: 1; }
+
+.edit-controls { display: none; gap: 4px; }
+body.admin-mode .summary-wrap:hover .edit-controls,
+body.admin-mode .sub-category:hover .edit-controls { display: flex; }
+.icon-btn { background: transparent; border: none; color: #444; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
+.icon-btn:hover { color: var(--text); }
+.icon-btn.del:hover { color: #c44; }
+
+/* ===== CONTENT AREA ===== */
+.content-area {
+    flex: 1; overflow-y: auto; position: relative; display: flex; flex-direction: column;
+    background: transparent;
+}
+.content-area::-webkit-scrollbar { width: 4px; }
+.content-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
+
+/* ===== MAIN DASHBOARD ===== */
+#main-dashboard {
+    flex: 1; display: flex; padding: 80px 60px 60px 80px; animation: fadeIn 1s;
+    overflow-y: auto; gap: 40px;
+}
+#main-dashboard::-webkit-scrollbar { width: 4px; }
+#main-dashboard::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
+
+.dash-left { flex: 1; min-width: 0; }
+.dash-right { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
+
+/* receiving signal... */
+.signal-text {
+    font-family: var(--eng-font); font-size: 0.7rem; color: var(--text-dim);
+    letter-spacing: 2px; margin-bottom: 12px; font-style: italic;
+    animation: blink 3s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+.landing-title {
+    font-family: var(--eng-font); font-size: 2.8rem; color: var(--text);
+    margin-bottom: 30px; font-weight: 400; line-height: 1.15;
+    letter-spacing: -0.5px;
+}
+
+/* Waveform decoration */
+.waveform {
+    margin-bottom: 35px; opacity: 0.3; font-family: var(--eng-font); font-size: 1.4rem;
+    letter-spacing: 2px; color: var(--text-dim); user-select: none;
+}
+
+/* NAV MENU (on main page) */
+.main-nav-list { margin-bottom: 40px; }
+.main-nav-item {
+    font-family: var(--eng-font); font-size: 1rem; color: var(--text);
+    padding: 8px 0; cursor: pointer; transition: all 0.3s;
+    letter-spacing: 1px; font-weight: 700; display: flex; align-items: center; gap: 8px;
+}
+.main-nav-item:hover { padding-left: 10px; color: #fff; }
+.main-nav-item .nav-arrow { font-weight: 400; color: var(--text-dim); }
+.main-nav-item:hover .nav-arrow { color: var(--text); }
+
+/* System Log Lines */
+.sys-log {
+    margin-bottom: 35px; padding: 0;
+}
+.sys-log-line {
+    font-family: var(--eng-font); font-size: 0.72rem; color: var(--text-dim);
+    line-height: 2; letter-spacing: 0.5px; opacity: 0;
+    animation: logFadeIn 0.5s forwards;
+}
+@keyframes logFadeIn { to { opacity: 0.6; } }
+
+/* Voyage D-Day */
+.voyage-block {
+    margin-top: 10px;
+}
+.voyage-label {
+    font-family: var(--eng-font); font-size: 0.75rem; color: var(--text-dim);
+    letter-spacing: 1px; margin-bottom: 2px; font-style: italic;
+}
+.voyage-dday {
+    font-family: var(--eng-font); font-size: 2rem; color: var(--text);
+    font-weight: 700; letter-spacing: 2px;
+}
+
+/* ===== RIGHT SIDE WIDGETS ===== */
+.widget-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 16px; position: relative;
+}
+
+/* Now Playing */
+.widget-player { display: flex; align-items: flex-start; gap: 14px; }
+.vinyl-icon {
+    width: 50px; height: 50px; border-radius: 50%;
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    animation: spin 4s linear infinite; flex-shrink: 0;
+    background: radial-gradient(circle, #333 30%, #1a1a1a 70%);
+}
+.vinyl-icon.paused { animation-play-state: paused; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+.vinyl-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); }
+
+.player-info { flex: 1; min-width: 0; }
+.player-label { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; }
+.player-track { font-size: 0.85rem; color: var(--text); font-weight: 700; margin-bottom: 8px; font-family: var(--eng-font); }
+.player-progress {
+    width: 100%; height: 2px; background: var(--border); margin-bottom: 10px; position: relative; cursor: pointer;
+}
+.player-progress-fill { height: 100%; background: var(--text); width: 30%; transition: width 0.3s; }
+.player-controls { display: flex; gap: 14px; align-items: center; }
+.ctrl-btn {
+    background: none; border: none; color: var(--text-dim); cursor: pointer;
+    font-family: var(--eng-font); font-size: 0.8rem; transition: 0.2s; padding: 0;
+}
+.ctrl-btn:hover { color: var(--text); }
+.ctrl-btn.play { font-size: 1rem; color: var(--text); }
+
+/* Recent Data */
+.recent-data-item {
+    font-family: var(--eng-font); font-size: 0.72rem; color: var(--text-dim);
+    padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.03);
+    cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+}
+.recent-data-item:hover { color: var(--text); }
+.recent-data-item .r-arrow { opacity: 0.4; }
+
+/* Character showcase (small thumbnails in right panel) */
+.char-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.char-thumb {
+    width: 44px; height: 44px; background: var(--border); cursor: pointer;
+    overflow: hidden; transition: all 0.3s; position: relative; border: 1px solid transparent;
+}
+.char-thumb:hover { border-color: var(--text); transform: translateY(-2px); }
+.char-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.char-thumb .char-emoji { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 1.2rem; }
+.char-more {
+    width: 30px; height: 44px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-dim); font-family: var(--eng-font); font-size: 0.8rem;
+    cursor: pointer; letter-spacing: 2px;
+}
+
+/* ===== CHARACTER SECTION (main page, toggleable) ===== */
+.char-section-full {
+    margin-top: 20px; padding: 24px; background: var(--bg-card);
+    border: 1px solid var(--border); display: none; animation: fadeIn 0.4s;
+}
+.char-section-full.open { display: block; }
+.char-section-header {
+    font-family: var(--eng-font); font-size: 0.7rem; color: var(--text-dim);
+    letter-spacing: 2px; margin-bottom: 16px; text-transform: uppercase;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.char-section-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-family: var(--eng-font); font-size: 0.8rem; }
+.char-section-close:hover { color: var(--text); }
+.char-card-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+
+.char-card {
+    background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+    cursor: pointer; transition: all 0.3s; text-align: center; overflow: hidden;
+}
+.char-card:hover { border-color: var(--text); transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+.char-card-img {
+    width: 100%; aspect-ratio: 1; background: #1a1a1a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; position: relative; overflow: hidden;
+}
+.char-card-img img { width: 100%; height: 100%; object-fit: cover; }
+.char-card-rank {
+    position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.7);
+    color: var(--text); font-family: var(--eng-font); font-size: 0.5rem;
+    padding: 2px 6px; letter-spacing: 1px;
+}
+.char-card-body { padding: 10px 8px 12px; }
+.char-card-name { font-family: var(--eng-font); font-size: 0.82rem; color: var(--text); font-weight: 700; margin-bottom: 2px; }
+.char-card-class { font-family: var(--eng-font); font-size: 0.58rem; color: var(--text-dim); letter-spacing: 0.5px; }
+
+.char-card-img-upload {
+    position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.7);
+    color: var(--text-dim); border: 1px solid var(--border);
+    width: 22px; height: 22px; font-size: 0.6rem;
+    cursor: pointer; display: none; align-items: center; justify-content: center; z-index: 5;
+}
+.char-card-img-upload:hover { color: var(--text); border-color: var(--text); }
+body.admin-mode .char-card:hover .char-card-img-upload { display: flex; }
+
+/* ===== CHAR PROFILE MODAL ===== */
+.char-modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.88); backdrop-filter: blur(8px);
+    z-index: 999990; align-items: center; justify-content: center;
+}
+.char-modal-overlay.show { display: flex; }
+.char-modal {
+    background: #111; border: 1px solid var(--border); width: 90%; max-width: 380px;
+    overflow: hidden; animation: modalSlide 0.3s ease; position: relative;
+}
+@keyframes modalSlide { from { transform: translateY(15px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.char-modal-banner {
+    height: 110px; background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+    display: flex; align-items: center; justify-content: center; position: relative;
+}
+.char-modal-avatar {
+    width: 75px; height: 75px; border-radius: 50%;
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; background: #111; overflow: hidden;
+}
+.char-modal-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.char-modal-close {
+    position: absolute; top: 10px; right: 10px; background: none;
+    border: 1px solid var(--border); color: var(--text-dim);
+    width: 26px; height: 26px; cursor: pointer; font-size: 0.7rem;
+    display: flex; align-items: center; justify-content: center; z-index: 2; transition: 0.2s;
+}
+.char-modal-close:hover { color: var(--text); border-color: var(--text); }
+.char-modal-body { padding: 20px 22px 24px; }
+.char-modal-name { font-family: var(--eng-font); font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.char-modal-class { font-family: var(--eng-font); font-size: 0.72rem; color: var(--text-dim); margin-bottom: 14px; letter-spacing: 1px; }
+.char-modal-bio { font-family: var(--kr-font); font-size: 0.85rem; color: var(--text-dim); line-height: 1.75; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* ===== BOARD AREA ===== */
+#board-area { display: none; padding: 60px 60px 40px 80px; flex: 1; animation: fadeIn 0.5s; overflow-y: auto; }
+#board-area::-webkit-scrollbar { width: 4px; }
+#board-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); }
+.board-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 12px;
+}
+.board-header h2 { font-family: var(--eng-font); font-size: 1.3rem; color: var(--text); font-weight: 400; letter-spacing: 2px; }
+
+.view-toggle-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 4px 12px; cursor: pointer; transition: 0.3s; margin-right: 10px;
+    font-family: var(--eng-font); font-size: 0.65rem; letter-spacing: 1px;
+}
+.view-toggle-btn:hover { border-color: var(--text); color: var(--text); }
+
+.btn {
+    background: var(--text); color: var(--bg); border: none; padding: 6px 14px;
+    cursor: pointer; font-weight: 700; font-family: var(--kr-font); transition: 0.2s; font-size: 0.8rem;
+}
+.btn:hover { opacity: 0.8; }
+.btn-add {
+    background: transparent; border: 1px dashed var(--border); color: var(--text-dim);
+    width: 100%; text-align: center; padding: 10px; cursor: pointer;
+    font-family: var(--kr-font); transition: 0.3s; font-size: 0.8rem;
+}
+.btn-add:hover { border-color: var(--text); color: var(--text); }
+
+/* Write form */
+.write-form {
+    background: rgba(0,0,0,0.6); padding: 22px; border: 1px solid var(--border);
+    margin-bottom: 25px; display: none;
+}
+.write-form input[type="text"] {
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); padding: 12px; margin-bottom: 12px;
+    font-family: var(--kr-font); font-size: 0.9rem; outline: none; transition: border 0.3s;
+}
+.write-form input[type="text"]:focus { border-color: var(--text); }
+.checkbox-group { display: flex; gap: 18px; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 10px; }
+.checkbox-label { color: var(--text-dim); font-size: 0.78rem; display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: var(--kr-font); }
+
+/* SunEditor dark */
+.sun-editor { font-family: var(--kr-font) !important; border-color: var(--border) !important; background: var(--bg) !important; }
+.se-wrapper-inner { background: var(--bg) !important; color: var(--text) !important; font-family: var(--kr-font); }
+.se-toolbar { outline: 1px solid var(--border) !important; background: rgba(0,0,0,0.9) !important; }
+.sun-editor .se-btn-tray { background: #1a1a1a !important; }
+.sun-editor .se-dialog .se-dialog-inner { background: #1a1a1a !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+.sun-editor input, .sun-editor select { background: var(--bg) !important; color: var(--text) !important; border: 1px solid var(--border) !important; }
+
+/* Post cards */
+.post-list { display: flex; flex-direction: column; gap: 18px; padding-bottom: 80px; }
+.post-list.gallery-mode { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.post-list.gallery-mode .post-card { max-height: 320px; overflow-y: auto; }
+
+.post-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    padding: 24px; transition: all 0.3s; position: relative;
+}
+.post-card:hover { border-color: rgba(255,255,255,0.15); }
+.post-card.notice-card { border-color: var(--text); }
+.notice-badge {
+    display: inline-block; background: var(--text); color: var(--bg);
+    padding: 2px 8px; font-family: var(--eng-font); font-size: 0.55rem;
+    margin-right: 8px; vertical-align: middle; font-weight: 700; letter-spacing: 1.5px;
+}
+.post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.post-title { font-family: var(--kr-font); font-size: 1.1rem; color: var(--text); font-weight: 600; flex: 1; }
+.post-date { font-family: var(--eng-font); font-size: 0.7rem; color: var(--text-dim); text-align: right; }
+.post-body { color: var(--text-dim); line-height: 1.85; font-size: 0.88rem; font-family: var(--kr-font); }
+.post-body a { color: var(--text); text-decoration: underline; }
+.post-body img, .post-body iframe { max-width: 100%; height: auto; margin: 12px 0; }
+.post-body table { border-collapse: collapse; width: 100%; margin: 12px 0; background: rgba(0,0,0,0.3); }
+.post-body th, .post-body td { border: 1px solid var(--border); padding: 8px; }
+.post-body blockquote { border-left: 2px solid var(--text); padding: 12px 16px; background: rgba(255,255,255,0.02); margin: 12px 0; }
+.post-body details { background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px; margin: 12px 0; }
+.post-body details summary { font-weight: bold; color: var(--text); cursor: pointer; padding: 5px; border: none; text-align: left; }
+
+.post-actions { margin-top: 16px; text-align: right; display: none; border-top: 1px dashed var(--border); padding-top: 12px; }
+body.admin-mode .post-actions { display: block; }
+.copy-link-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    padding: 3px 8px; font-size: 0.6rem; cursor: pointer; margin-top: 6px;
+    font-family: var(--eng-font); transition: 0.2s; letter-spacing: 0.5px;
+}
+.copy-link-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ===== BGM PLAYER (bottom right) ===== */
+.global-bgm-player {
+    position: fixed; bottom: 15px; right: 15px;
+    background: rgba(10,10,10,0.95); border: 1px solid var(--border);
+    padding: 12px; display: flex; flex-direction: column; gap: 8px;
+    z-index: 1000; backdrop-filter: blur(8px);
+}
+.bgm-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.bgm-header span { color: var(--text-dim); font-family: var(--eng-font); font-size: 0.65rem; letter-spacing: 1px; }
+
+/* ===== ALL MODALS ===== */
+.modal {
+    display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.88); z-index: 999999 !important;
+    justify-content: center; align-items: center; backdrop-filter: blur(4px);
+}
+.modal-content {
+    background: #111; padding: 30px; border: 1px solid var(--border);
+    width: 480px; max-width: 92%; box-shadow: 0 0 40px rgba(0,0,0,0.8);
+    animation: modalSlide 0.3s;
+}
+.modal-content h2 { font-family: var(--eng-font); color: var(--text); margin-bottom: 22px; text-align: center; font-size: 1rem; letter-spacing: 3px; font-weight: 400; text-transform: uppercase; }
+.setting-group { margin-bottom: 12px; }
+.setting-group label { display: block; font-size: 0.72rem; color: var(--text-dim); margin-bottom: 4px; font-family: var(--kr-font); letter-spacing: 0.5px; }
+.modal-content input[type="text"], .modal-content textarea, .modal-content select {
+    width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--kr-font); font-size: 0.85rem; outline: none; transition: border 0.3s;
+}
+.modal-content input:focus, .modal-content textarea:focus, .modal-content select:focus { border-color: var(--text); }
+.modal-content input[type="color"] { width: 100%; height: 36px; cursor: pointer; padding: 2px; background: var(--bg); border: 1px solid var(--border); }
+.modal-btn-wrap { display: flex; justify-content: space-between; margin-top: 22px; gap: 10px; }
+
+#login-modal .modal-content { width: 340px; padding: 35px; }
+#login-modal h2 { font-size: 1.1rem; margin-bottom: 25px; }
+#login-modal input[type="password"] {
+    background: rgba(255,255,255,0.9) !important; color: #000 !important;
+    border: none !important; padding: 11px; font-weight: bold; margin-bottom: 20px;
+}
+.btn-cyan { background: var(--text); color: var(--bg); border: none; padding: 10px 25px; font-family: var(--eng-font); font-size: 0.8rem; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: 0.2s; }
+.btn-cyan:hover { opacity: 0.8; }
+.btn-dark { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 10px 25px; font-family: var(--eng-font); font-size: 0.8rem; cursor: pointer; letter-spacing: 1px; transition: 0.2s; }
+.btn-dark:hover { border-color: var(--text); color: var(--text); }
+
+.admin-only { display: none !important; }
+body.admin-mode .admin-only { display: block !important; }
+body.admin-mode span.admin-only, body.admin-mode div.admin-only { display: flex !important; }
+
+/* Category inline edit */
+.cat-edit-input, .summary-edit-input {
+    background: var(--bg); border: 1px solid var(--text); color: var(--text);
+    padding: 3px 6px; font-family: var(--eng-font); font-size: 0.78rem; outline: none; width: 120px;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Theme preset colors for settings */
+.theme-presets { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+.theme-preset-btn {
+    padding: 4px 12px; font-family: var(--eng-font); font-size: 0.65rem;
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    cursor: pointer; transition: 0.2s; letter-spacing: 0.5px;
+}
+.theme-preset-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* Font selector */
+.font-select {
+    width: 100%; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); font-size: 0.82rem; outline: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    #main-dashboard { flex-direction: column; padding: 60px 30px 40px 30px; }
+    .dash-right { width: 100%; flex-direction: row; flex-wrap: wrap; }
+    .char-card-grid { grid-template-columns: repeat(3, 1fr); }
+    .landing-title { font-size: 2rem; }
+    #board-area { padding: 50px 30px; }
+}
+@media (max-width: 600px) {
+    .char-card-grid { grid-template-columns: repeat(2, 1fr); }
+    .dash-right { flex-direction: column; }
+}
 </style>
 </head>
-<body data-theme="dark-space">
+<body>
 
-<div id="intro-screen" onclick="skipIntro()">
-    <div><span id="typing-text"></span><span class="cursor"></span></div>
-    <div style="margin-top: 30px; font-size: 0.8rem; color: #555;">[클릭하여 스킵]</div>
+<!-- Layers -->
+<div class="grain"></div>
+<div class="stars-layer" id="starsLayer"></div>
+<div class="grid-lines"></div>
+<div class="comet"></div>
+<div class="celestial planet-1"></div>
+<div class="celestial planet-2"></div>
+<div class="celestial planet-3"></div>
+<div class="grid-labels" style="top:8px; left:8px;">400</div>
+<div class="grid-labels" style="top:50%; left:8px;">300</div>
+<div class="grid-labels" style="bottom:8px; left:8px;">100</div>
+<div class="grid-labels" style="bottom:8px; right:50%;">200</div>
+<div class="sat-label" style="top:15px; left:170px;">1989N1</div>
+<div class="sat-label" style="top:65px; left:130px;">1989N3</div>
+<div class="sat-label" style="top:90px; left:80px;">1989N2</div>
+<div class="sat-dot" style="top:60px; left:120px;"></div>
+
+<!-- Hidden inputs -->
+<input type="file" id="charImgInput" accept="image/*" style="display:none;">
+
+<!-- Sidebar toggle -->
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Menu">☰</button>
+
+<!-- INTRO -->
+<div id="intro-screen">
+    <div class="intro-text" id="typing-text"></div>
+    <button class="enter-btn" id="enter-btn" onclick="enterSystem()">ENTER SYSTEM</button>
 </div>
 
-<div id="dashboard">
-    <div class="header-widget">
-        <div>
-            <h2 style="margin:0;">Resonance Status: <span style="color:var(--accent)">Stable</span></h2>
-            <p style="margin: 5px 0 0 0; color: var(--text-muted);">Access Level: <span id="access-level-text">Guest (Read Only)</span></p>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <select class="theme-selector" onchange="changeTheme(this.value)">
-                <option value="dark-space">Dark Space (기본)</option>
-                <option value="light-candy">Light Candy (GIF)</option>
-                <option value="hacker">Terminal</option>
-            </select>
-            <button class="btn" id="login-btn" onclick="openAuthModal('login')">🔑 관리자 로그인</button>
-            <button class="btn admin-only" onclick="logout()" style="background: #c53030;">로그아웃</button>
-            <button class="btn admin-only" onclick="openAuthModal('changePw')" style="background: #4a5568;">비번 변경</button>
+<!-- MAIN -->
+<div id="main-system">
+    <div class="top-nav">
+        <h1 id="site-title" onclick="goMain()">Our Cosmos</h1>
+        <div class="nav-buttons">
+            <button class="admin-only" style="display:inline-block;" onclick="openModal('settings-modal')">settings</button>
+            <button id="login-toggle-btn" onclick="openModal('login-modal')">login</button>
         </div>
     </div>
 
-    <div id="main-banner" style="background-image: url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1000&q=80');">
-        <div class="banner-overlay admin-only">
-            <button class="btn-small" style="background: rgba(0,0,0,0.6); color: white; border: 1px solid #fff;" onclick="changeMainImagePrompt()">이미지 링크 변경</button>
+    <div class="main-content-wrapper">
+        <div class="sidebar" id="sidebarPanel">
+            <div class="home-menu" onclick="goMain(); closeSidebar();">Main Dashboard</div>
+            <div id="category-list"></div>
+            <button class="btn-add admin-only" onclick="addMainCategory()">+ 대분류 추가</button>
         </div>
-    </div>
 
-    <div class="tools-grid">
-        <div class="card">
-            <h3 style="margin-top:0;">🎵 Theme BGM</h3>
-            <p id="bgm-title" style="font-size: 14px; color: var(--text-muted);">Atmospheric Space.mp3</p>
-            <audio id="bgm-player" controls loop style="width: 100%;">
-                <source src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_c6f2a893c5.mp3?filename=space-atmospheric-background-11484.mp3" type="audio/mpeg">
-                오디오 지원 불가
-            </audio>
-        </div>
-        
-        <div class="card">
-            <h3 style="margin-top:0;">👥 Synchronized Users</h3>
-            <p style="margin-bottom: 5px;">User 1 | User 2 | User 3</p>
-            <p style="font-size: 12px; color: var(--text-muted);">* 로그인 시 모든 관리 권한이 활성화됩니다.</p>
-        </div>
-    </div>
+        <div class="content-area">
+            <div id="main-dashboard">
+                <div class="dash-left">
+                    <div class="signal-text">receiving signal...</div>
+                    <h1 class="landing-title" id="landing-title-text">Observatory of<br>Disappearing Things</h1>
+                    <div class="waveform">╦╤╤║╗╣ ╠╬╬╣║╗ ╠╦╬╣╗╣</div>
 
-    <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin:0;">📝 Shared Logs</h3>
-            <button class="btn admin-only" onclick="openWriteScreen()">새 글 작성</button>
-        </div>
-        <div id="post-container" class="post-list">
+                    <div class="main-nav-list" id="mainNavList">
+                        <!-- generated by JS from categories -->
+                    </div>
+
+                    <div class="sys-log" id="sysLogArea">
+                        <!-- generated by JS -->
+                    </div>
+
+                    <div class="voyage-block">
+                        <div class="voyage-label">from the date of the voyage</div>
+                        <div class="voyage-dday" id="voyageDday">D+3893</div>
+                    </div>
+
+                    <!-- Full character section (toggled) -->
+                    <div class="char-section-full" id="charSectionFull">
+                        <div class="char-section-header">
+                            <span>Representatives</span>
+                            <button class="char-section-close" onclick="toggleCharSection()">close</button>
+                        </div>
+                        <div class="char-card-grid" id="charCardGrid"></div>
+                    </div>
+                </div>
+
+                <div class="dash-right">
+                    <!-- Now Playing widget -->
+                    <div class="widget-card">
+                        <div class="widget-player">
+                            <div class="vinyl-icon" id="vinylIcon"><div class="vinyl-dot"></div></div>
+                            <div class="player-info">
+                                <div class="player-label">> Now Playing..</div>
+                                <div class="player-track" id="currentTrackName">Sabbath</div>
+                                <div class="player-progress"><div class="player-progress-fill" id="progressFill"></div></div>
+                                <div class="player-controls">
+                                    <button class="ctrl-btn" onclick="prevTrack()">«</button>
+                                    <button class="ctrl-btn play" id="playBtn" onclick="togglePlay()">▶</button>
+                                    <button class="ctrl-btn" onclick="nextTrack()">»</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Data -->
+                    <div class="widget-card">
+                        <div class="player-label" style="margin-bottom:8px;">> Recent Data</div>
+                        <div id="recentDataList">
+                            <div class="recent-data-item"><span class="r-arrow">></span> -</div>
+                            <div class="recent-data-item"><span class="r-arrow">></span> -</div>
+                            <div class="recent-data-item"><span class="r-arrow">></span> -</div>
+                        </div>
+                    </div>
+
+                    <!-- Character thumbnails -->
+                    <div class="widget-card">
+                        <div class="char-row" id="charThumbRow"></div>
+                    </div>
+                </div>
             </div>
+
+            <div id="board-area">
+                <div class="board-header">
+                    <h2 id="current-category">Category</h2>
+                    <div>
+                        <button class="view-toggle-btn" id="view-toggle-btn" onclick="toggleViewMode()">list</button>
+                        <button class="btn admin-only" style="display:inline-block;" onclick="openWriteForm()">새 기록 작성</button>
+                    </div>
+                </div>
+                <div class="write-form" id="write-form-container">
+                    <input type="hidden" id="edit-post-id" value="">
+                    <input type="text" id="post-title" placeholder="제목을 입력하세요">
+                    <div class="checkbox-group">
+                        <label class="checkbox-label"><input type="checkbox" id="post-pin-cat"> 카테고리 공지</label>
+                        <label class="checkbox-label"><input type="checkbox" id="post-pin-main"> 메인 트랙 전시</label>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <button class="btn" style="background:var(--border); color:var(--text); font-size:0.75rem;" onclick="insertFoldedText()">[+] 접은글 삽입</button>
+                    </div>
+                    <textarea id="post-content" style="display:none;"></textarea>
+                    <div style="text-align:right; margin-top:12px;">
+                        <button class="btn" style="background:transparent; border:1px solid var(--border); color:var(--text); margin-right:8px;" onclick="closeWriteForm()">취소</button>
+                        <button class="btn" onclick="savePost()">기록 저장</button>
+                    </div>
+                </div>
+                <div class="post-list" id="post-list-container"></div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div id="write-screen">
-    <div class="header-widget">
-        <h2 style="margin:0;" id="write-title">새 로그 작성</h2>
-        <button class="btn" style="background: var(--text-muted);" onclick="closeWriteScreen()">돌아가기</button>
+<!-- BGM Player -->
+<div class="global-bgm-player" id="bgm-widget" style="display:none;">
+    <div class="bgm-header" onclick="toggleBgmPlayer()">
+        <span>SYSTEM BGM</span>
+        <span id="bgm-toggle-icon" style="font-size:0.6rem;">▾</span>
     </div>
-    <div class="editor-wrapper">
-        <input type="hidden" id="post-id">
-        <input type="text" id="post-title-input" class="input-box" placeholder="제목을 입력하세요" style="font-size: 1.2rem; font-weight: bold;">
-        
-        <label style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">대표 이미지 (URL 또는 PC에서 선택)</label>
-        <div style="display: flex; gap: 10px;">
-            <input type="file" id="post-image-file" accept="image/*" onchange="previewImage(event)" class="input-box" style="flex: 1;">
-            <input type="text" id="post-image-url" class="input-box" placeholder="또는 이미지 URL 직접 붙여넣기" style="flex: 2;" onchange="document.getElementById('post-image-data').value = this.value;">
-        </div>
-        <input type="hidden" id="post-image-data">
-        
-        <textarea id="post-body-input" class="input-box" placeholder="내용을 기록하세요..."></textarea>
-        
-        <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-            <button class="btn" style="padding: 12px 30px; font-size: 1.1rem;" onclick="savePost()">💾 저장 및 업로드</button>
-        </div>
+    <div id="bgm-iframe-container" style="display:block; margin-top:8px;"></div>
+</div>
+
+<!-- Notice Popup -->
+<div id="notice-popup-modal" class="modal">
+    <div class="modal-content" style="max-width:380px; text-align:center;">
+        <h2>System Notice</h2>
+        <div id="notice-content-area" style="margin-bottom:22px; color:var(--text-dim); line-height:1.8; font-family:var(--kr-font); white-space:pre-wrap; font-size:0.85rem;"></div>
+        <button class="btn" style="width:100%; padding:10px;" onclick="closeModal('notice-popup-modal')">확인</button>
     </div>
 </div>
 
-<div id="authModal" class="modal">
+<!-- Login -->
+<div id="login-modal" class="modal">
     <div class="modal-content">
-        <h3 id="auth-modal-title" style="margin:0;">권한 인증</h3>
-        <p id="auth-modal-desc" style="font-size: 12px; color: var(--text-muted); margin:0;">마스터 비밀번호를 입력하세요.</p>
-        <input type="password" id="auth-pw-input" class="input-box" placeholder="비밀번호">
-        
-        <input type="password" id="auth-new-pw-input" class="input-box" placeholder="새로운 비밀번호" style="display: none;">
+        <h2>System Login</h2>
+        <input type="password" id="admin-pw" placeholder="비밀번호 입력 (기본: 1234)">
+        <div class="modal-btn-wrap" style="margin-top:0;">
+            <button class="btn-cyan" onclick="checkPassword()">접속</button>
+            <button class="btn-dark" onclick="closeModal('login-modal')">닫기</button>
+        </div>
+    </div>
+</div>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn" style="flex: 1;" onclick="executeAuth()">확인</button>
-            <button class="btn" style="flex: 1; background: var(--text-muted);" onclick="closeModal('authModal')">취소</button>
+<!-- Settings -->
+<div id="settings-modal" class="modal">
+    <div class="modal-content" style="height:88vh; overflow-y:auto; width:520px;">
+        <h2>Settings</h2>
+
+        <!-- GENERAL -->
+        <div class="setting-group"><label>사이트 이름</label><input type="text" id="set-title"></div>
+        <div class="setting-group"><label>랜딩 제목 (줄바꿈: &lt;br&gt;)</label><input type="text" id="set-landing-title"></div>
+        <div class="setting-group"><label>랜딩 소제목</label><input type="text" id="set-landing-sub"></div>
+        <div class="setting-group"><label>D-Day 텍스트 (예: D+3893)</label><input type="text" id="set-dday"></div>
+
+        <hr style="border:0; border-bottom:1px solid var(--border); margin:18px 0;">
+        <h3 style="font-family:var(--eng-font); font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;">POPUP NOTICE</h3>
+        <label style="color:var(--text-dim); font-size:0.78rem; display:flex; align-items:center; gap:6px; margin-bottom:10px; cursor:pointer; font-family:var(--kr-font);"><input type="checkbox" id="set-notice-enable"> 팝업 공지 활성화</label>
+        <div class="setting-group"><label>팝업 내용</label><textarea id="set-notice-content" rows="3"></textarea></div>
+
+        <hr style="border:0; border-bottom:1px solid var(--border); margin:18px 0;">
+        <h3 style="font-family:var(--eng-font); font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;">INTRO & BGM</h3>
+        <div class="setting-group"><label>인트로 타이핑 텍스트</label><textarea id="set-intro" rows="3"></textarea></div>
+        <div class="setting-group"><label>시스템 로그 라인 (줄바꿈 구분)</label><textarea id="set-syslog" rows="4"></textarea></div>
+        <div class="setting-group"><label>유튜브 BGM 링크</label><input type="text" id="set-bgm"></div>
+
+        <hr style="border:0; border-bottom:1px solid var(--border); margin:18px 0;">
+        <h3 style="font-family:var(--eng-font); font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;">THEME</h3>
+        <div class="theme-presets">
+            <button class="theme-preset-btn" onclick="applyPreset('dark')">Dark</button>
+            <button class="theme-preset-btn" onclick="applyPreset('midnight')">Midnight</button>
+            <button class="theme-preset-btn" onclick="applyPreset('warm')">Warm</button>
+            <button class="theme-preset-btn" onclick="applyPreset('ice')">Ice</button>
+            <button class="theme-preset-btn" onclick="applyPreset('forest')">Forest</button>
+            <button class="theme-preset-btn" onclick="applyPreset('rose')">Rose</button>
+        </div>
+        <div style="display:flex; gap:12px; margin-bottom:15px;">
+            <div class="setting-group" style="flex:1; margin:0;"><label>배경</label><input type="color" id="set-color-bg"></div>
+            <div class="setting-group" style="flex:1; margin:0;"><label>텍스트</label><input type="color" id="set-color-text"></div>
+            <div class="setting-group" style="flex:1; margin:0;"><label>어두운 텍스트</label><input type="color" id="set-color-dim"></div>
+            <div class="setting-group" style="flex:1; margin:0;"><label>테두리</label><input type="color" id="set-color-border"></div>
+        </div>
+
+        <hr style="border:0; border-bottom:1px solid var(--border); margin:18px 0;">
+        <h3 style="font-family:var(--eng-font); font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:10px;">FONTS</h3>
+        <div style="display:flex; gap:12px; margin-bottom:15px;">
+            <div class="setting-group" style="flex:1; margin:0;">
+                <label>영문 폰트</label>
+                <select class="font-select" id="set-font-eng">
+                    <option value="'Artemis', 'Courier Prime', monospace">Artemis (기본)</option>
+                    <option value="'Courier Prime', monospace">Courier Prime</option>
+                    <option value="'Space Mono', monospace">Space Mono</option>
+                    <option value="'Share Tech Mono', monospace">Share Tech Mono</option>
+                    <option value="'IBM Plex Mono', monospace">IBM Plex Mono</option>
+                </select>
+            </div>
+            <div class="setting-group" style="flex:1; margin:0;">
+                <label>한글 폰트</label>
+                <select class="font-select" id="set-font-kr">
+                    <option value="'Pretendard', 'Noto Sans KR', sans-serif">Pretendard (기본)</option>
+                    <option value="'Noto Sans KR', sans-serif">Noto Sans KR</option>
+                    <option value="'Gothic A1', sans-serif">Gothic A1</option>
+                </select>
+            </div>
+        </div>
+
+        <hr style="border:0; border-bottom:1px solid var(--border); margin:18px 0;">
+        <h3 style="font-family:var(--eng-font); font-size:0.7rem; color:var(--text-dim); letter-spacing:2px; margin-bottom:12px;">CHARACTERS</h3>
+        <div id="charSettingsArea"></div>
+        <button class="btn-add" style="margin-bottom:15px;" onclick="addCharacter()">+ 캐릭터 추가 (최대 5인)</button>
+
+        <div class="modal-btn-wrap">
+            <button class="btn" onclick="saveSettings()">설정 저장</button>
+            <button class="btn" style="background:transparent; border:1px solid var(--border); color:var(--text);" onclick="closeModal('settings-modal')">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- Char Profile Modal -->
+<div class="char-modal-overlay" id="charProfileModal">
+    <div class="char-modal">
+        <button class="char-modal-close" onclick="closeCharModal()">✕</button>
+        <div class="char-modal-banner">
+            <div class="char-modal-avatar" id="charModalAvatar">?</div>
+        </div>
+        <div class="char-modal-body">
+            <div class="char-modal-name" id="charModalName">Name</div>
+            <div class="char-modal-class" id="charModalClass">Class</div>
+            <div class="char-modal-bio" id="charModalBio">Bio</div>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 초기 설정 및 로컬 데이터 로드 ---
-    if(!localStorage.getItem('masterPw')) localStorage.setItem('masterPw', '1234'); // 초기 비밀번호: 1234
-    
-    let posts = JSON.parse(localStorage.getItem('sharedPosts')) || [];
-    let isLoggedIn = sessionStorage.getItem('isAdmin') === 'true'; // 세션 유지 (새로고침해도 로그인 유지)
-    let currentAuthAction = ''; // 'login' 또는 'changePw'
+const ADMIN_PASSWORD = "1234";
+let currentActiveCategory = "";
+let myEditor = null;
+let hasSeenNoticeThisSession = false;
+let currentCharImgTarget = -1;
 
-    // 테마 및 메인 이미지 초기화
-    const savedTheme = localStorage.getItem('siteTheme') || 'dark-space';
-    document.body.setAttribute('data-theme', savedTheme);
-    document.querySelector('.theme-selector').value = savedTheme;
+const THEME_PRESETS = {
+    dark:     { bg:'#0a0a0a', text:'#d4d4d4', dim:'#666666', border:'#2a2a2a' },
+    midnight: { bg:'#06080f', text:'#c5c6c7', dim:'#555555', border:'#1e293b' },
+    warm:     { bg:'#0f0906', text:'#d4c4b0', dim:'#7a6a5a', border:'#2a2218' },
+    ice:      { bg:'#060a0f', text:'#b8d0e0', dim:'#556677', border:'#1a2a3a' },
+    forest:   { bg:'#060f06', text:'#b0d4b0', dim:'#557755', border:'#1a2a1a' },
+    rose:     { bg:'#0f060a', text:'#d4b0c0', dim:'#775566', border:'#2a1a22' },
+};
 
-    const savedBanner = localStorage.getItem('mainBanner');
-    if(savedBanner) document.getElementById('main-banner').style.backgroundImage = `url('${savedBanner}')`;
+let siteSettings = {
+    title: "Our Cosmos",
+    landingTitle: "Observatory of<br>Disappearing Things",
+    landingSub: "우주가 기억하는 기록되지 않은 파편들",
+    dday: "D+3893",
+    introText: "receiving signal...\n[SYSTEM] Verifying clearance...\n[SYSTEM] Dimensional sync in progress...\n[SYSTEM] Access Granted.",
+    sysLogLines: "/ Optical polarizer failure...\n/ Switch to Backup Thruster Set...\n/ Still functioning...\n/ Communication reconnection successful...\n/ Power depletion.\n/ Encountered ██",
+    bgmUrl: "",
+    colorBg: '#0a0a0a', colorText: '#d4d4d4', colorDim: '#666666', colorBorder: '#2a2a2a',
+    fontEng: "'Artemis', 'Courier Prime', monospace",
+    fontKr: "'Pretendard', 'Noto Sans KR', sans-serif",
+    showGlobalNotice: false,
+    globalNotice: "환영합니다.\n본 아카이브는 지속적으로 업데이트 중입니다.",
+    categories: [
+        { name: "Instrument Status", subs: [] },
+        { name: "Record", subs: [] },
+        { name: "Data", subs: [] },
+        { name: "Log", subs: [] },
+        { name: "Swing_by", subs: [] }
+    ],
+    viewModes: {}, posts: {},
+    characters: [
+        { name:"Aether", class:"Vanguard / SSS", bio:"차원 간 공명을 조율하는 최상위 전위 요원.", emoji:"⚔", rank:"SSS", image:"" },
+        { name:"Nyx", class:"Shadow Weaver / SS", bio:"그림자를 조종하는 은밀한 작전 수행자.", emoji:"🌙", rank:"SS", image:"" },
+        { name:"Solaris", class:"Radiant Core / S", bio:"태양의 힘을 가진 방사형 코어 요원.", emoji:"☀", rank:"S", image:"" },
+        { name:"Cryo", class:"Frost Sentinel / A", bio:"절대영도의 수호자. 냉철한 전략가.", emoji:"❄", rank:"A", image:"" },
+        { name:"Pixel", class:"Data Phantom / B", bio:"데이터 차원에서 태어난 유령 같은 존재.", emoji:"💠", rank:"B", image:"" }
+    ],
+    playlist: [
+        { name:"Sabbath", artist:"Ambient" },
+        { name:"Void Signal", artist:"Deep Space" },
+        { name:"Last Orbit", artist:"Nomad" }
+    ]
+};
 
-    // --- (1) 타이핑 인트로 로직 ---
-    const introText = "> SYSTEM BOOTING...\n> CHECKING SYNCHRONIZATION RATE...\n> 98.7%... OK.\n> ACCESS GRANTED.\n\n> WELCOME TO THE ARCHIVE.";
-    let charIndex = 0;
-    let typingTimer;
-    
-    function typeEffect() {
-        if (charIndex < introText.length) {
-            document.getElementById('typing-text').textContent += introText.charAt(charIndex);
-            charIndex++;
-            typingTimer = setTimeout(typeEffect, 40);
+let currentTrack = 0, isPlaying = false;
+
+// ===== INIT =====
+function init() {
+    createStars();
+    loadSettings();
+    const postId = new URLSearchParams(window.location.search).get('post');
+    if (postId) {
+        let tc = null;
+        for (let c in siteSettings.posts) { if (siteSettings.posts[c].find(p=>p.id===postId)) { tc=c; break; } }
+        if (tc) { enterSystem(true); changeCategory(tc, postId); } else startTyping();
+    } else startTyping();
+}
+
+function createStars() {
+    const c = document.getElementById('starsLayer');
+    for (let i=0; i<90; i++) {
+        const s = document.createElement('div'); s.className='star';
+        s.style.left = Math.random()*100+'%'; s.style.top = Math.random()*100+'%';
+        s.style.setProperty('--d', (2+Math.random()*6)+'s');
+        s.style.setProperty('--o', 0.15+Math.random()*0.5);
+        s.style.animationDelay = Math.random()*6+'s';
+        const sz = 1+Math.random()*1.5; s.style.width=sz+'px'; s.style.height=sz+'px';
+        c.appendChild(s);
+    }
+}
+
+// ===== THEME =====
+function applyTheme() {
+    const r = document.documentElement.style;
+    r.setProperty('--bg', siteSettings.colorBg);
+    r.setProperty('--bg-card', hexToRgba(siteSettings.colorBg, 0.75, 10));
+    r.setProperty('--text', siteSettings.colorText);
+    r.setProperty('--text-dim', siteSettings.colorDim);
+    r.setProperty('--border', siteSettings.colorBorder);
+    r.setProperty('--eng-font', siteSettings.fontEng);
+    r.setProperty('--kr-font', siteSettings.fontKr);
+    document.body.style.fontFamily = siteSettings.fontEng;
+}
+
+function hexToRgba(hex, alpha, lighten=0) {
+    hex = hex.replace('#','');
+    let r = Math.min(255, parseInt(hex.substring(0,2),16)+lighten);
+    let g = Math.min(255, parseInt(hex.substring(2,4),16)+lighten);
+    let b = Math.min(255, parseInt(hex.substring(4,6),16)+lighten);
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyPreset(name) {
+    const p = THEME_PRESETS[name]; if(!p) return;
+    document.getElementById('set-color-bg').value = p.bg;
+    document.getElementById('set-color-text').value = p.text;
+    document.getElementById('set-color-dim').value = p.dim;
+    document.getElementById('set-color-border').value = p.border;
+}
+
+// ===== LOAD/SAVE =====
+function loadSettings() {
+    try {
+        let saved = localStorage.getItem('observatoryV3');
+        if(!saved) saved = localStorage.getItem('cosmosDataV2');
+        if(saved) siteSettings = { ...siteSettings, ...JSON.parse(saved) };
+    } catch(e){}
+    if(!siteSettings.posts) siteSettings.posts={};
+    if(!siteSettings.viewModes) siteSettings.viewModes={};
+    if(!siteSettings.characters) siteSettings.characters=[];
+    if(!siteSettings.playlist) siteSettings.playlist=[];
+    if(!siteSettings.sysLogLines) siteSettings.sysLogLines="";
+
+    applyTheme();
+    document.getElementById('site-title').innerText = siteSettings.title;
+    document.getElementById('landing-title-text').innerHTML = siteSettings.landingTitle;
+    document.getElementById('voyageDday').innerText = siteSettings.dday || 'D+0';
+
+    // settings form
+    document.getElementById('set-title').value = siteSettings.title;
+    document.getElementById('set-landing-title').value = siteSettings.landingTitle;
+    document.getElementById('set-landing-sub').value = siteSettings.landingSub;
+    document.getElementById('set-dday').value = siteSettings.dday || '';
+    document.getElementById('set-notice-enable').checked = siteSettings.showGlobalNotice;
+    document.getElementById('set-notice-content').value = siteSettings.globalNotice;
+    document.getElementById('set-intro').value = siteSettings.introText;
+    document.getElementById('set-syslog').value = siteSettings.sysLogLines;
+    document.getElementById('set-bgm').value = siteSettings.bgmUrl;
+    document.getElementById('set-color-bg').value = siteSettings.colorBg;
+    document.getElementById('set-color-text').value = siteSettings.colorText;
+    document.getElementById('set-color-dim').value = siteSettings.colorDim;
+    document.getElementById('set-color-border').value = siteSettings.colorBorder;
+
+    // font selects
+    setSelectVal('set-font-eng', siteSettings.fontEng);
+    setSelectVal('set-font-kr', siteSettings.fontKr);
+
+    renderSidebar();
+    renderMainNav();
+    renderSysLog();
+    renderCharCards();
+    renderCharThumbs();
+    renderRecentData();
+    renderCharSettings();
+    if(siteSettings.playlist.length) {
+        document.getElementById('currentTrackName').innerText = siteSettings.playlist[0].name;
+    }
+}
+
+function setSelectVal(id, val) {
+    const sel = document.getElementById(id);
+    for(let i=0; i<sel.options.length; i++) {
+        if(sel.options[i].value === val) { sel.selectedIndex=i; return; }
+    }
+}
+
+function saveToLocal() {
+    try { localStorage.setItem('observatoryV3', JSON.stringify(siteSettings)); renderSidebar(); return true; }
+    catch(e) { alert("저장 실패"); return false; }
+}
+
+// ===== MAIN NAV LIST =====
+function renderMainNav() {
+    const el = document.getElementById('mainNavList');
+    el.innerHTML = '';
+    siteSettings.categories.forEach(cat => {
+        if (cat.subs.length === 0) {
+            el.innerHTML += `<div class="main-nav-item" onclick="openCategoryOrSub('${cat.name}')"><span class="nav-arrow">></span> ${cat.name}</div>`;
         } else {
-            setTimeout(skipIntro, 1500); // 다 치고 1.5초 후 메인으로
+            el.innerHTML += `<div class="main-nav-item" onclick="toggleSidebar(); setTimeout(()=>{},100);"><span class="nav-arrow">></span> ${cat.name}</div>`;
         }
+    });
+}
+
+function openCategoryOrSub(name) {
+    // check if it's a main cat with subs or a direct board
+    const cat = siteSettings.categories.find(c => c.name === name);
+    if (cat && cat.subs.length > 0) {
+        toggleSidebar();
+    } else {
+        changeCategory(name);
     }
+}
 
-    function skipIntro() {
-        clearTimeout(typingTimer);
-        const intro = document.getElementById('intro-screen');
-        intro.style.transition = "opacity 0.5s ease";
-        intro.style.opacity = "0";
-        setTimeout(() => {
-            intro.style.display = 'none';
-            document.getElementById('dashboard').style.display = 'flex';
-            updateUIPermissions();
-            renderPosts();
-        }, 500);
+// ===== SYS LOG =====
+function renderSysLog() {
+    const el = document.getElementById('sysLogArea');
+    el.innerHTML = '';
+    const lines = (siteSettings.sysLogLines || '').split('\n').filter(l=>l.trim());
+    lines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'sys-log-line';
+        div.textContent = line;
+        div.style.animationDelay = (i * 0.15) + 's';
+        el.appendChild(div);
+    });
+}
+
+// ===== RECENT DATA =====
+function renderRecentData() {
+    const el = document.getElementById('recentDataList');
+    el.innerHTML = '';
+    let recentPosts = [];
+    for (const cat in siteSettings.posts) {
+        siteSettings.posts[cat].forEach(p => recentPosts.push({ ...p, cat }));
     }
-
-    // 페이지 로드 시 인트로 시작 (테스트 편의를 위해 매번 실행되도록 함)
-    window.onload = typeEffect;
-
-
-    // --- (3) 권한 및 로그인 로직 ---
-    function updateUIPermissions() {
-        const adminElements = document.querySelectorAll('.admin-only');
-        const loginBtn = document.getElementById('login-btn');
-        const accessLevel = document.getElementById('access-level-text');
-
-        if (isLoggedIn) {
-            adminElements.forEach(el => el.style.display = el.tagName === 'BUTTON' ? 'inline-block' : 'block');
-            loginBtn.style.display = 'none';
-            accessLevel.innerHTML = '<span style="color:#48bb78;">Admin (Full Access)</span>';
-        } else {
-            adminElements.forEach(el => el.style.display = 'none');
-            loginBtn.style.display = 'inline-block';
-            accessLevel.innerHTML = 'Guest (Read Only)';
-        }
-        renderPosts(); // 게시물 렌더링 시 수정/삭제 버튼 유무 업데이트
+    recentPosts.sort((a,b) => parseInt(b.id)-parseInt(a.id));
+    const top3 = recentPosts.slice(0,3);
+    if (top3.length === 0) {
+        el.innerHTML = '<div class="recent-data-item"><span class="r-arrow">></span> -</div>'.repeat(3);
+        return;
     }
+    top3.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'recent-data-item';
+        div.innerHTML = `<span class="r-arrow">></span> ${p.title}`;
+        div.onclick = () => changeCategory(p.cat, p.id);
+        el.appendChild(div);
+    });
+}
 
-    function openAuthModal(action) {
-        currentAuthAction = action;
-        document.getElementById('auth-pw-input').value = '';
-        document.getElementById('auth-new-pw-input').value = '';
-        
-        if (action === 'login') {
-            document.getElementById('auth-modal-title').innerText = '관리자 로그인';
-            document.getElementById('auth-modal-desc').innerText = '글 작성 및 관리를 위해 비밀번호를 입력하세요.';
-            document.getElementById('auth-new-pw-input').style.display = 'none';
-        } else if (action === 'changePw') {
-            document.getElementById('auth-modal-title').innerText = '비밀번호 변경';
-            document.getElementById('auth-modal-desc').innerText = '현재 비밀번호와 새 비밀번호를 입력하세요.';
-            document.getElementById('auth-new-pw-input').style.display = 'block';
-        }
-        document.getElementById('authModal').style.display = 'flex';
+// ===== CHARACTERS =====
+function renderCharCards() {
+    const grid = document.getElementById('charCardGrid');
+    grid.innerHTML = '';
+    if(!siteSettings.characters || !siteSettings.characters.length) return;
+    siteSettings.characters.forEach((ch,i) => {
+        const card = document.createElement('div'); card.className='char-card';
+        card.onclick = () => openCharProfile(i);
+        const img = ch.image ? `<img src="${ch.image}" alt="${ch.name}">` : `<span style="font-size:1.8rem;">${ch.emoji||'?'}</span>`;
+        card.innerHTML = `
+            <div class="char-card-img">${img}<span class="char-card-rank">${ch.rank||'?'}</span>
+            <button class="char-card-img-upload" onclick="event.stopPropagation();triggerCharImgUpload(${i})">img</button></div>
+            <div class="char-card-body"><div class="char-card-name">${ch.name}</div><div class="char-card-class">${(ch.class||'').split('/')[0].trim()}</div></div>`;
+        grid.appendChild(card);
+    });
+}
+
+function renderCharThumbs() {
+    const row = document.getElementById('charThumbRow');
+    row.innerHTML = '';
+    (siteSettings.characters||[]).forEach((ch,i) => {
+        const thumb = document.createElement('div'); thumb.className='char-thumb';
+        thumb.onclick = () => openCharProfile(i);
+        thumb.innerHTML = ch.image ? `<img src="${ch.image}" alt="${ch.name}">` : `<div class="char-emoji">${ch.emoji||'?'}</div>`;
+        row.appendChild(thumb);
+    });
+    if (siteSettings.characters.length) {
+        row.innerHTML += `<div class="char-more" onclick="toggleCharSection()">...</div>`;
     }
+}
 
-    function executeAuth() {
-        const inputPw = document.getElementById('auth-pw-input').value;
-        const realPw = localStorage.getItem('masterPw');
+function toggleCharSection() {
+    document.getElementById('charSectionFull').classList.toggle('open');
+}
 
-        if (inputPw !== realPw) {
-            alert('비밀번호가 일치하지 않습니다.');
-            return;
-        }
+function openCharProfile(i) {
+    const ch = siteSettings.characters[i]; if(!ch) return;
+    document.getElementById('charModalName').textContent = ch.name;
+    document.getElementById('charModalClass').textContent = ch.class;
+    document.getElementById('charModalBio').textContent = ch.bio;
+    const av = document.getElementById('charModalAvatar');
+    av.innerHTML = ch.image ? `<img src="${ch.image}">` : (ch.emoji||'?');
+    document.getElementById('charProfileModal').classList.add('show');
+}
+function closeCharModal() { document.getElementById('charProfileModal').classList.remove('show'); }
+document.getElementById('charProfileModal').addEventListener('click', function(e){ if(e.target===this) closeCharModal(); });
 
-        if (currentAuthAction === 'login') {
-            isLoggedIn = true;
-            sessionStorage.setItem('isAdmin', 'true');
-            updateUIPermissions();
-            closeModal('authModal');
-        } else if (currentAuthAction === 'changePw') {
-            const newPw = document.getElementById('auth-new-pw-input').value;
-            if(!newPw) { alert('새 비밀번호를 입력하세요.'); return; }
-            localStorage.setItem('masterPw', newPw);
-            alert('비밀번호가 변경되었습니다!');
-            closeModal('authModal');
-        }
-    }
+function triggerCharImgUpload(i) { currentCharImgTarget=i; document.getElementById('charImgInput').click(); }
+document.getElementById('charImgInput').addEventListener('change', function(e){
+    const f=e.target.files[0]; if(!f||currentCharImgTarget<0) return;
+    const r=new FileReader();
+    r.onload=function(ev){ siteSettings.characters[currentCharImgTarget].image=ev.target.result; saveToLocal(); renderCharCards(); renderCharThumbs(); currentCharImgTarget=-1; };
+    r.readAsDataURL(f); this.value='';
+});
 
-    function logout() {
-        isLoggedIn = false;
-        sessionStorage.removeItem('isAdmin');
-        updateUIPermissions();
-        alert('로그아웃 되었습니다. 읽기 전용 모드로 전환됩니다.');
-    }
+function renderCharSettings() {
+    const area = document.getElementById('charSettingsArea'); area.innerHTML='';
+    (siteSettings.characters||[]).forEach((ch,i) => {
+        area.innerHTML += `
+        <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border); padding:12px; margin-bottom:8px; position:relative;">
+            <button onclick="removeCharacter(${i})" style="position:absolute; top:6px; right:8px; background:none; border:none; color:#c44; cursor:pointer; font-size:0.8rem;">✕</button>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                <div class="setting-group" style="margin:0;"><label>이름</label><input type="text" id="char-name-${i}" value="${ch.name}"></div>
+                <div class="setting-group" style="margin:0;"><label>클래스</label><input type="text" id="char-class-${i}" value="${ch.class}"></div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                <div class="setting-group" style="margin:0;"><label>이모지</label><input type="text" id="char-emoji-${i}" value="${ch.emoji||''}" style="width:50px;"></div>
+                <div class="setting-group" style="margin:0;"><label>등급</label><input type="text" id="char-rank-${i}" value="${ch.rank||''}" style="width:60px;"></div>
+            </div>
+            <div class="setting-group" style="margin:0;"><label>소개</label><textarea id="char-bio-${i}" rows="2" style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); font-family:var(--kr-font); padding:6px; resize:vertical; font-size:0.82rem;">${ch.bio}</textarea></div>
+        </div>`;
+    });
+}
+function addCharacter() {
+    if(siteSettings.characters.length>=5){ alert("최대 5인"); return; }
+    siteSettings.characters.push({name:"New",class:"Unknown",bio:"소개를 입력하세요.",emoji:"✦",rank:"?",image:""});
+    renderCharSettings();
+}
+function removeCharacter(i) { if(confirm("삭제하시겠습니까?")){ siteSettings.characters.splice(i,1); renderCharSettings(); } }
+function collectCharSettings() {
+    siteSettings.characters.forEach((ch,i) => {
+        const el=document.getElementById(`char-name-${i}`); if(!el) return;
+        ch.name=el.value; ch.class=document.getElementById(`char-class-${i}`).value;
+        ch.emoji=document.getElementById(`char-emoji-${i}`).value; ch.rank=document.getElementById(`char-rank-${i}`).value;
+        ch.bio=document.getElementById(`char-bio-${i}`).value;
+    });
+}
 
+// ===== SIDEBAR =====
+function toggleSidebar() { document.getElementById('sidebarPanel').classList.toggle('open'); }
+function closeSidebar() { document.getElementById('sidebarPanel').classList.remove('open'); }
 
-    // --- (4) 메인 사진 및 테마 커스텀 로직 ---
-    function changeMainImagePrompt() {
-        const url = prompt('새로운 메인 이미지의 URL(링크)을 입력하세요:\n(예: https://...)');
-        if (url) {
-            document.getElementById('main-banner').style.backgroundImage = `url('${url}')`;
-            localStorage.setItem('mainBanner', url);
-        }
-    }
-
-    function changeTheme(themeName) {
-        document.body.setAttribute('data-theme', themeName);
-        localStorage.setItem('siteTheme', themeName);
-    }
-
-
-    // --- (2) 게시판 (큰 창 글쓰기) CRUD 로직 ---
-    function renderPosts() {
-        const container = document.getElementById('post-container');
-        container.innerHTML = '';
-
-        if(posts.length === 0) {
-            container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding: 20px;">기록된 로그가 없습니다.</p>';
-            return;
-        }
-
-        posts.slice().reverse().forEach(post => {
-            const dateStr = new Date(post.date).toLocaleString();
-            
-            // 이미지가 없으면 텍스트만 꽉 차게, 이미지가 있으면 썸네일 표시
-            const imgHtml = post.image ? `<img src="${post.image}" class="post-thumb" alt="thumb">` : '';
-            
-            // 로그인 상태일 때만 수정/삭제 버튼 표시
-            const actionBtns = isLoggedIn ? `
-                <div class="post-actions">
-                    <button class="btn-small" onclick="openWriteScreen(${post.id})">수정</button>
-                    <button class="btn-small" onclick="deletePost(${post.id})" style="color:#e53e3e; border-color:#e53e3e;">삭제</button>
-                </div>
-            ` : '';
-
-            container.innerHTML += `
-                <div class="post-item">
-                    ${imgHtml}
-                    <div class="post-content">
-                        <h4 class="post-title">${post.title}</h4>
-                        <p class="post-date">${dateStr}</p>
-                        <p class="post-body">${post.content}</p>
-                    </div>
-                    ${actionBtns}
-                </div>
-            `;
+function renderSidebar() {
+    const el = document.getElementById('category-list'); el.innerHTML='';
+    siteSettings.categories.forEach((cat,i) => {
+        let html = `<details open><summary class="summary-wrap">
+            <div class="edit-controls admin-only"><button class="icon-btn" onclick="editMainCat(event,${i})">✏</button><button class="icon-btn del" onclick="delMainCat(event,${i})">✕</button></div>
+            <span class="sub-name" id="mcat-${i}">${cat.name}</span></summary>`;
+        cat.subs.forEach((sub,j) => {
+            html += `<div class="sub-category" id="swrap-${i}-${j}">
+                <div class="edit-controls admin-only"><button class="icon-btn" onclick="editSubCat(event,${i},${j})">✏</button><button class="icon-btn del" onclick="delSubCat(event,${i},${j})">✕</button></div>
+                <span class="sub-name" onclick="changeCategory('${sub}'); closeSidebar();" id="scat-${i}-${j}">${sub}</span></div>`;
         });
-    }
-
-    // 큰 창 열기 (새 글 or 수정)
-    function openWriteScreen(id = null) {
-        document.getElementById('dashboard').style.display = 'none';
-        document.getElementById('write-screen').style.display = 'flex';
-        
-        // 입력 폼 초기화
-        document.getElementById('post-image-file').value = '';
-        document.getElementById('post-image-url').value = '';
-        document.getElementById('post-image-data').value = '';
-        
-        if(id !== null) {
-            const post = posts.find(p => p.id === id);
-            document.getElementById('write-title').innerText = '로그 편집';
-            document.getElementById('post-id').value = post.id;
-            document.getElementById('post-title-input').value = post.title;
-            document.getElementById('post-body-input').value = post.content;
-            if(post.image) {
-                document.getElementById('post-image-url').value = post.image;
-                document.getElementById('post-image-data').value = post.image;
-            }
-        } else {
-            document.getElementById('write-title').innerText = '새 로그 작성';
-            document.getElementById('post-id').value = '';
-            document.getElementById('post-title-input').value = '';
-            document.getElementById('post-body-input').value = '';
+        if(cat.subs.length===0) {
+            html += `<div class="sub-category" onclick="changeCategory('${cat.name}'); closeSidebar();" style="color:var(--text-dim); font-family:var(--eng-font); font-size:0.72rem;">[ enter ]</div>`;
         }
+        html += `<div class="sub-category admin-only" style="color:#333;" onclick="addSubCat(${i})">+ 소분류</div></details>`;
+        el.innerHTML += html;
+    });
+}
+
+function addMainCategory() { const n=prompt("대분류 이름:"); if(n){siteSettings.categories.push({name:n,subs:[]});saveToLocal();renderMainNav();} }
+function addSubCat(m) { const n=prompt("소분류 이름:"); if(n){siteSettings.categories[m].subs.push(n);saveToLocal();} }
+
+function editMainCat(e,i) {
+    e.preventDefault(); e.stopPropagation();
+    const span=document.getElementById(`mcat-${i}`); const old=siteSettings.categories[i].name;
+    span.innerHTML=`<input class="summary-edit-input" value="${old}" id="emc-${i}" onblur="finishEditMC(${i})" onkeydown="if(event.key==='Enter'){this.blur();}">`;
+    document.getElementById(`emc-${i}`).focus();
+}
+function finishEditMC(i) {
+    const v=document.getElementById(`emc-${i}`).value.trim();
+    if(v && v!==siteSettings.categories[i].name) { siteSettings.categories[i].name=v; saveToLocal(); renderMainNav(); } else renderSidebar();
+}
+function editSubCat(e,m,s) {
+    e.preventDefault(); e.stopPropagation();
+    const span=document.getElementById(`scat-${m}-${s}`); const old=siteSettings.categories[m].subs[s];
+    span.innerHTML=`<input class="cat-edit-input" value="${old}" id="esc-${m}-${s}" onblur="finishEditSC(${m},${s})" onkeydown="if(event.key==='Enter'){this.blur();}" onclick="event.stopPropagation();">`;
+    document.getElementById(`esc-${m}-${s}`).focus();
+}
+function finishEditSC(m,s) {
+    const v=document.getElementById(`esc-${m}-${s}`).value.trim(); const old=siteSettings.categories[m].subs[s];
+    if(v && v!==old) {
+        siteSettings.categories[m].subs[s]=v;
+        if(siteSettings.posts[old]){siteSettings.posts[v]=siteSettings.posts[old];delete siteSettings.posts[old];}
+        if(siteSettings.viewModes[old]){siteSettings.viewModes[v]=siteSettings.viewModes[old];delete siteSettings.viewModes[old];}
+        saveToLocal(); if(currentActiveCategory===old) changeCategory(v);
+    } else renderSidebar();
+}
+function delMainCat(e,i) { e.preventDefault(); if(confirm("삭제?")){ siteSettings.categories.splice(i,1); saveToLocal(); renderMainNav(); goMain(); } }
+function delSubCat(e,m,s) {
+    e.stopPropagation(); const n=siteSettings.categories[m].subs[s];
+    if(confirm(`"${n}" 삭제?`)){ siteSettings.categories[m].subs.splice(s,1); delete siteSettings.posts[n]; saveToLocal(); goMain(); }
+}
+
+// ===== NAV =====
+function goMain() {
+    document.getElementById('main-dashboard').style.display='flex';
+    document.getElementById('board-area').style.display='none';
+    window.history.pushState({},'',window.location.pathname);
+    renderRecentData(); renderCharThumbs(); renderMainNav(); renderSysLog();
+    if(siteSettings.showGlobalNotice && siteSettings.globalNotice && !hasSeenNoticeThisSession) {
+        document.getElementById('notice-content-area').innerText=siteSettings.globalNotice;
+        setTimeout(()=>{openModal('notice-popup-modal'); hasSeenNoticeThisSession=true;},500);
     }
+}
 
-    // 큰 창 닫기
-    function closeWriteScreen() {
-        document.getElementById('write-screen').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'flex';
-    }
+function changeCategory(sub, scrollTo=null) {
+    document.getElementById('main-dashboard').style.display='none';
+    document.getElementById('board-area').style.display='block';
+    document.getElementById('current-category').innerText=sub;
+    currentActiveCategory=sub; closeWriteForm(); renderPosts();
+    if(scrollTo) setTimeout(()=>{
+        const el=document.getElementById('post-'+scrollTo);
+        if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.style.borderColor='var(--text)';setTimeout(()=>el.style.borderColor='',2500);}
+    },300);
+}
 
-    // 파일 로컬 미리보기 (Base64 변환 후 hidden input에 저장)
-    function previewImage(event) {
-        const file = event.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('post-image-data').value = e.target.result;
-            document.getElementById('post-image-url').value = '로컬 파일 업로드됨';
-        };
-        reader.readAsDataURL(file);
-    }
+function toggleViewMode() {
+    if(!currentActiveCategory) return;
+    const c=siteSettings.viewModes[currentActiveCategory]||'list';
+    siteSettings.viewModes[currentActiveCategory]=c==='list'?'gallery':'list';
+    saveToLocal(); renderPosts();
+}
 
-    function savePost() {
-        const id = document.getElementById('post-id').value;
-        const title = document.getElementById('post-title-input').value;
-        const content = document.getElementById('post-body-input').value;
-        const image = document.getElementById('post-image-data').value;
-
-        if(!title || !content) { alert('제목과 내용을 모두 작성해주세요.'); return; }
-
-        if(id) {
-            const index = posts.findIndex(p => p.id === parseInt(id));
-            posts[index].title = title;
-            posts[index].content = content;
-            posts[index].image = image; 
-        } else {
-            posts.push({
-                id: Date.now(),
-                title: title,
-                content: content,
-                image: image,
-                date: new Date().toISOString()
+// ===== EDITOR =====
+function openWriteForm(id=null) {
+    document.getElementById('write-form-container').style.display='block';
+    try {
+        if(!myEditor) {
+            myEditor=SUNEDITOR.create('post-content',{
+                buttonList:[['undo','redo'],['bold','underline','italic','strike'],['fontColor','hiliteColor','formatBlock','fontSize'],['removeFormat'],['outdent','indent','align','horizontalRule','list','table'],['link','image','video','blockquote'],['fullScreen','showBlocks','codeView']],
+                fontSize:[10,12,14,16,18,20,24,30], width:'100%', height:'350px'
             });
         }
-
-        localStorage.setItem('sharedPosts', JSON.stringify(posts));
-        closeWriteScreen();
-        renderPosts();
-    }
-
-    function deletePost(id) {
-        if(confirm('정말 이 로그를 영구 삭제하시겠습니까?')) {
-            posts = posts.filter(p => p.id !== id);
-            localStorage.setItem('sharedPosts', JSON.stringify(posts));
-            renderPosts();
+        if(id){
+            const p=siteSettings.posts[currentActiveCategory].find(x=>x.id===id);
+            document.getElementById('edit-post-id').value=id;
+            document.getElementById('post-title').value=p.title;
+            document.getElementById('post-pin-cat').checked=p.pinCat||false;
+            document.getElementById('post-pin-main').checked=p.pinMain||false;
+            myEditor.setContents(p.content);
+        } else {
+            document.getElementById('edit-post-id').value="";
+            document.getElementById('post-title').value="";
+            document.getElementById('post-pin-cat').checked=false;
+            document.getElementById('post-pin-main').checked=false;
+            myEditor.setContents("");
         }
-    }
+    } catch(e){ document.getElementById('post-content').style.display='block'; }
+}
+function closeWriteForm() { document.getElementById('write-form-container').style.display='none'; }
+function insertFoldedText() { if(myEditor) myEditor.insertHTML(`<details><summary>펼치기</summary><p>내용</p></details><p><br></p>`); }
 
-    function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+function savePost() {
+    const title=document.getElementById('post-title').value.trim();
+    const content=myEditor?myEditor.getContents():document.getElementById('post-content').value;
+    const pinCat=document.getElementById('post-pin-cat').checked;
+    const pinMain=document.getElementById('post-pin-main').checked;
+    const editId=document.getElementById('edit-post-id').value;
+    const cat=currentActiveCategory;
+    if(!cat){alert("카테고리 없음");return;}
+    if(!title||content==='<p><br></p>'||content===''){alert('제목과 내용을 입력하세요.');return;}
+    if(!siteSettings.posts[cat]) siteSettings.posts[cat]=[];
+    if(editId){
+        const p=siteSettings.posts[cat].find(x=>x.id===editId);
+        p.title=title; p.content=content; p.pinCat=pinCat; p.pinMain=pinMain;
+    } else {
+        const now=new Date();
+        const d=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+        siteSettings.posts[cat].unshift({id:Date.now().toString(),title,content,date:d,pinCat,pinMain});
+    }
+    if(saveToLocal()){renderPosts();closeWriteForm();renderRecentData();}
+}
+function deletePost(id) {
+    if(confirm('삭제?')){siteSettings.posts[currentActiveCategory]=siteSettings.posts[currentActiveCategory].filter(p=>p.id!==id);saveToLocal();renderPosts();renderRecentData();}
+}
+
+function renderPosts() {
+    const c=document.getElementById('post-list-container');
+    const vb=document.getElementById('view-toggle-btn');
+    const vm=siteSettings.viewModes[currentActiveCategory]||'list';
+    c.innerHTML='';
+    if(vm==='gallery'){c.classList.add('gallery-mode');vb.innerText='gallery';}
+    else{c.classList.remove('gallery-mode');vb.innerText='list';}
+    const posts=siteSettings.posts[currentActiveCategory]||[];
+    if(!posts.length){c.innerHTML='<p style="text-align:center;color:var(--text-dim);margin-top:50px;font-family:var(--eng-font);font-size:0.8rem;">NO RECORDS FOUND</p>';return;}
+    [...posts].sort((a,b)=>a.pinCat===b.pinCat?0:a.pinCat?-1:1).forEach(p=>{
+        const card=document.createElement('div'); card.id='post-'+p.id;
+        card.className=p.pinCat?'post-card notice-card':'post-card';
+        const badge=p.pinCat?'<span class="notice-badge">NOTICE</span>':'';
+        card.innerHTML=`
+            <div class="post-header"><div class="post-title">${badge}${p.title}</div><div class="post-date">${p.date}<br><button class="copy-link-btn" onclick="copyPermalink('${p.id}')">link</button></div></div>
+            <div class="post-body">${p.content}</div>
+            <div class="post-actions admin-only">
+                <button class="btn" style="padding:4px 10px;font-size:0.75rem;background:transparent;border:1px solid var(--text-dim);color:var(--text-dim);margin-right:6px;" onclick="openWriteForm('${p.id}')">수정</button>
+                <button class="btn" style="padding:4px 10px;font-size:0.75rem;background:#c44;color:#fff;" onclick="deletePost('${p.id}')">삭제</button>
+            </div>`;
+        c.appendChild(card);
+    });
+}
+function copyPermalink(id) { navigator.clipboard.writeText(window.location.origin+window.location.pathname+'?post='+id).then(()=>alert('주소 복사됨')); }
+
+// ===== PLAYER =====
+function togglePlay() { isPlaying=!isPlaying; document.getElementById('playBtn').textContent=isPlaying?'||':'▶'; document.getElementById('vinylIcon').classList.toggle('paused',!isPlaying); }
+function nextTrack() { if(!siteSettings.playlist.length) return; currentTrack=(currentTrack+1)%siteSettings.playlist.length; document.getElementById('currentTrackName').textContent=siteSettings.playlist[currentTrack].name; }
+function prevTrack() { if(!siteSettings.playlist.length) return; currentTrack=(currentTrack-1+siteSettings.playlist.length)%siteSettings.playlist.length; document.getElementById('currentTrackName').textContent=siteSettings.playlist[currentTrack].name; }
+
+// ===== INTRO =====
+function startTyping() {
+    const lines=siteSettings.introText.split('\n'); const target=document.getElementById('typing-text');
+    let li=0,ci=0; target.innerHTML='';
+    function type(){
+        if(li<lines.length){
+            if(ci<lines[li].length){target.innerHTML+=lines[li].charAt(ci);ci++;setTimeout(type,40);}
+            else{target.innerHTML+='<br>';li++;ci=0;setTimeout(type,400);}
+        } else document.getElementById('enter-btn').style.display='block';
+    } type();
+}
+function enterSystem(skip=false) {
+    document.getElementById('intro-screen').style.opacity='0';
+    setTimeout(()=>{
+        document.getElementById('intro-screen').style.display='none';
+        document.body.style.overflow='auto';
+        document.getElementById('main-system').style.visibility='visible';
+        document.getElementById('main-system').style.opacity='1';
+        initYouTubePlayer();
+        if(!skip) goMain();
+    },skip?0:1000);
+}
+
+// ===== BGM =====
+function getYTId(url){const m=url.match(/^.*(youtu.be\/|v\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);return(m&&m[2].length===11)?m[2]:null;}
+function initYouTubePlayer() {
+    const vid=getYTId(siteSettings.bgmUrl||""); const c=document.getElementById('bgm-iframe-container');
+    if(vid){c.innerHTML=`<iframe width="240" height="135" src="https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen style="margin-top:4px;"></iframe>`;document.getElementById('bgm-widget').style.display='flex';}
+    else{c.innerHTML='';document.getElementById('bgm-widget').style.display='none';}
+}
+function toggleBgmPlayer(){const c=document.getElementById('bgm-iframe-container');const i=document.getElementById('bgm-toggle-icon');if(c.style.display==='none'){c.style.display='block';i.innerText='▾';}else{c.style.display='none';i.innerText='▸';}}
+
+// ===== MODALS =====
+function openModal(id){document.getElementById(id).style.display='flex';if(id==='settings-modal')renderCharSettings();}
+function closeModal(id){document.getElementById(id).style.display='none';}
+function checkPassword(){
+    if(document.getElementById('admin-pw').value===ADMIN_PASSWORD){
+        document.body.classList.add('admin-mode');
+        document.getElementById('login-toggle-btn').innerText='logout';
+        document.getElementById('login-toggle-btn').setAttribute('onclick','logout()');
+        closeModal('login-modal');
+    } else alert('비밀번호 불일치');
+    document.getElementById('admin-pw').value='';
+}
+function logout(){document.body.classList.remove('admin-mode');document.getElementById('login-toggle-btn').innerText='login';document.getElementById('login-toggle-btn').setAttribute('onclick',"openModal('login-modal')");}
+
+function saveSettings() {
+    collectCharSettings();
+    siteSettings.title=document.getElementById('set-title').value;
+    siteSettings.landingTitle=document.getElementById('set-landing-title').value;
+    siteSettings.landingSub=document.getElementById('set-landing-sub').value;
+    siteSettings.dday=document.getElementById('set-dday').value;
+    siteSettings.showGlobalNotice=document.getElementById('set-notice-enable').checked;
+    siteSettings.globalNotice=document.getElementById('set-notice-content').value;
+    siteSettings.introText=document.getElementById('set-intro').value;
+    siteSettings.sysLogLines=document.getElementById('set-syslog').value;
+    siteSettings.bgmUrl=document.getElementById('set-bgm').value;
+    siteSettings.colorBg=document.getElementById('set-color-bg').value;
+    siteSettings.colorText=document.getElementById('set-color-text').value;
+    siteSettings.colorDim=document.getElementById('set-color-dim').value;
+    siteSettings.colorBorder=document.getElementById('set-color-border').value;
+    siteSettings.fontEng=document.getElementById('set-font-eng').value;
+    siteSettings.fontKr=document.getElementById('set-font-kr').value;
+
+    document.getElementById('site-title').innerText=siteSettings.title;
+    document.getElementById('landing-title-text').innerHTML=siteSettings.landingTitle;
+    document.getElementById('voyageDday').innerText=siteSettings.dday;
+
+    saveToLocal(); applyTheme(); renderCharCards(); renderCharThumbs(); renderMainNav(); renderSysLog();
+    closeModal('settings-modal'); initYouTubePlayer();
+}
+
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeCharModal();closeModal('login-modal');closeModal('settings-modal');closeModal('notice-popup-modal');closeSidebar();}});
+
+init();
 </script>
 </body>
 </html>
