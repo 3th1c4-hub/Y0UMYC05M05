@@ -10,39 +10,27 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
-        /* 1. Artemis 폰트 (otf 포맷 추가) */
+        /* Artemis 폰트 파일 강제 불러오기 */
         @font-face {
             font-family: 'Artemis';
             src: url('Artemis.woff2') format('woff2'),
                  url('Artemis.woff') format('woff'),
                  url('Artemis.ttf') format('truetype'),
                  url('Artemis.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
+            font-weight: normal; font-style: normal; font-display: swap;
         }
 
-        /* 테마 변수 */
         :root {
-            --bg-body: #070B14;
-            --bg-card: #0F172A;
-            --bg-dark: #020617;
-            --text-main: #F8FAFC;
-            --text-sub: #94A3B8;
-            --accent: #00F0FF;
-            --border-color: #1E293B;
-            --radius-lg: 16px;
-            --radius-md: 10px;
-            --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.5);
-            
+            --bg-body: #070B14; --bg-card: #0F172A; --bg-dark: #020617; 
+            --text-main: #F8FAFC; --text-sub: #94A3B8; --accent: #00F0FF; --border-color: #1E293B;
+            --radius-lg: 16px; --radius-md: 10px; --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.5);
             --font-main: 'Artemis', 'Pretendard', sans-serif;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background-color: var(--bg-body); color: var(--text-main); font-family: var(--font-main); -webkit-font-smoothing: antialiased; transition: background-color 0.3s, color 0.3s; }
+        body { background-color: var(--bg-body); color: var(--text-main); font-family: var(--font-main); -webkit-font-smoothing: antialiased; transition: 0.3s; }
         ul { list-style: none; }
         
-        /* ----- 헤더 ----- */
         .header { background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; padding: 15px 40px; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; transition: 0.3s; }
         .logo { font-size: 20px; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 10px; cursor: pointer; letter-spacing: 1px; }
         .nav-menu { display: flex; gap: 10px; align-items: center; }
@@ -55,13 +43,11 @@
         .settings-btn { color: var(--text-sub); cursor: pointer; transition: 0.2s; font-size: 18px; display: none; }
         .settings-btn:hover { color: var(--accent); }
 
-        /* ----- 공통 레이아웃 ----- */
         .main-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         .content-section { display: none; animation: fadeIn 0.4s ease forwards; }
         .content-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ----- 1. 대시보드 ----- */
         .main-banner { background: var(--bg-dark); border: 1px solid var(--border-color); color: var(--text-main); border-radius: var(--radius-lg); padding: 40px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; box-shadow: var(--shadow-md); position: relative; overflow: hidden; }
         .main-banner::before { content: ''; position: absolute; top:0; left:-100%; width:50%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); transform: skewX(-20deg); animation: shine 5s infinite; }
         @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
@@ -92,7 +78,6 @@
         .char-info-overlay { position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px 10px 15px 10px; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); text-align: center; }
         .char-name { font-size: 16px; font-weight: 700; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-        /* ----- 2. 게시판 (LOGS) & 사이드바 ----- */
         .logs-layout { display: flex; gap: 20px; align-items: flex-start; }
         .logs-sidebar { width: 220px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow-md); flex-shrink: 0; position: sticky; top: 90px; }
         .cat-list { display: flex; flex-direction: column; gap: 5px; }
@@ -107,7 +92,6 @@
         .btn-primary { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-family: var(--font-main); transition: 0.2s; display: none; }
         .btn-primary:hover { background: var(--accent); color: #000; }
         
-        /* 리스트 스타일 변경: 섬네일과 제목만 표시 */
         .post-list { display: flex; flex-direction: column; gap: 15px; }
         .post-item { background: var(--bg-card); border-radius: var(--radius-md); border: 1px solid var(--border-color); box-shadow: var(--shadow-md); transition: 0.2s; overflow: hidden; }
         .post-item:hover { border-color: var(--accent); }
@@ -125,7 +109,6 @@
         .btn-sm:hover { color: var(--text-main); border-color: var(--text-main); }
         .btn-sm.danger:hover { color: #FF003C; border-color: #FF003C; }
 
-        /* ----- 3. 글쓰기 전용 페이지 ----- */
         .write-container { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 40px; box-shadow: var(--shadow-md); }
         .write-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
         .write-header h2 { color: var(--accent); }
@@ -136,12 +119,10 @@
         textarea.form-input { min-height: 300px; resize: vertical; line-height: 1.6; }
         select.form-input { appearance: none; cursor: pointer; }
 
-        /* ----- 4. 글 열람 전용 페이지 ----- */
         #view-page-title { font-size: 24px; color: var(--accent); margin-bottom: 5px; }
         .view-content-area { font-size: 15px; line-height: 1.8; color: var(--text-main); white-space: pre-wrap; margin-top: 30px; }
         .view-image { max-width: 100%; max-height: 500px; border-radius: 8px; border: 1px solid var(--border-color); display: none; margin-bottom: 20px; }
 
-        /* ----- 모달 공통 ----- */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
         .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); padding: 30px; border-radius: var(--radius-lg); width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); position: relative; }
         .modal-content::-webkit-scrollbar { width: 6px; }
@@ -184,21 +165,12 @@
     </header>
 
     <div class="main-container">
-        
         <section id="section-dash" class="content-section active">
             <div class="main-banner">
-                <div class="banner-title">
-                    <h1 id="ui-banner-title">Title</h1>
-                    <p id="ui-banner-sub">Subtitle</p>
-                </div>
-                <div class="banner-dday">
-                    <span id="ui-banner-dday-label">LABEL</span>
-                    <strong id="ui-banner-dday-val">D-0</strong>
-                </div>
+                <div class="banner-title"><h1 id="ui-banner-title">Title</h1><p id="ui-banner-sub">Subtitle</p></div>
+                <div class="banner-dday"><span id="ui-banner-dday-label">LABEL</span><strong id="ui-banner-dday-val">D-0</strong></div>
             </div>
-
             <div class="single-text-box" id="ui-main-text">내용이 없습니다.</div>
-
             <div class="bento-grid">
                 <div class="main-image-card" id="ui-main-image"></div>
                 <div class="bgm-card">
@@ -214,7 +186,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="character-grid" id="character-container"></div>
         </section>
 
@@ -232,8 +203,7 @@
                         <h2 id="current-category-title">ALL LOGS</h2>
                         <button class="btn-primary auth-only" onclick="openWritePage()"><i class="fa-solid fa-pen"></i> NEW LOG</button>
                     </div>
-                    <div class="post-list" id="post-list-container">
-                        </div>
+                    <div class="post-list" id="post-list-container"></div>
                 </div>
             </div>
         </section>
@@ -244,9 +214,7 @@
                     <button class="btn-sm" onclick="switchTab('logs')"><i class="fa-solid fa-arrow-left"></i> BACK</button>
                     <h2 id="write-page-title">NEW SYSTEM LOG</h2>
                 </div>
-                
                 <input type="hidden" id="write-post-id"> 
-                
                 <div style="display:flex; gap:15px;">
                     <div class="form-group" style="width: 200px;">
                         <label>CATEGORY</label>
@@ -257,19 +225,16 @@
                         <input type="text" id="write-title" class="form-input" placeholder="로그 제목 입력">
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label>IMAGE URL (섬네일 및 본문 첨부용)</label>
                     <input type="text" id="write-img-url" class="form-input" placeholder="이미지 주소(URL)를 붙여넣으세요" oninput="previewImageUrl()">
                     <img id="write-img-preview" src="" style="display:none; max-width:100%; max-height:200px; border-radius:8px; margin-top:15px; border:1px solid var(--border-color); object-fit:contain;">
                 </div>
-
                 <div class="form-group">
                     <label>CONTENT</label>
                     <textarea id="write-content" class="form-input" placeholder="데이터 입력..."></textarea>
                 </div>
-                
-                <button class="btn-block" onclick="savePost()"><i class="fa-solid fa-upload"></i> UPLOAD DATA</button>
+                <button class="btn-block" id="btn-save-post" onclick="savePost()"><i class="fa-solid fa-upload"></i> UPLOAD DATA</button>
             </div>
         </section>
 
@@ -281,13 +246,11 @@
                     </div>
                     <div class="auth-only" style="display: none; gap: 10px;" id="view-admin-actions"></div>
                 </div>
-                
                 <div style="margin-bottom: 20px;">
                     <span id="view-page-cat" class="post-cat-badge" style="margin-bottom: 10px;"></span>
                     <h2 id="view-page-title"></h2>
                     <div id="view-page-date" style="font-size: 13px; color: var(--text-sub); margin-top: 10px;"></div>
                 </div>
-
                 <img id="view-page-img" class="view-image" src="">
                 <div id="view-page-content" class="view-content-area"></div>
             </div>
@@ -300,7 +263,7 @@
         <div class="modal-content">
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal('settings-modal')"></i>
             <h2 style="margin-bottom: 10px;"><i class="fa-solid fa-gear"></i> System Override</h2>
-            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">시스템 컬러, 텍스트, 카테고리를 편집합니다.</p>
+            <p style="font-size: 12px; color: var(--text-sub); margin-bottom: 20px;">시스템 설정은 서버(Firebase)에 저장되어 모든 접속자에게 반영됩니다.</p>
 
             <div class="form-section-title">UI 테마 컬러 설정</div>
             <div class="form-group">
@@ -321,7 +284,7 @@
 
             <div class="form-section-title">기본 설정</div>
             <div class="form-group"><label>사이트 이름</label><input type="text" id="set-site-name" class="form-input"></div>
-            <div class="form-group"><label>메인 소개 문구</label><textarea id="set-main-text" class="form-input" style="min-height:60px;"></textarea></div>
+            <div class="form-group"><label>메인 소개 문구 (HTML 허용)</label><textarea id="set-main-text" class="form-input" style="min-height:60px;"></textarea></div>
             <div class="form-group"><label>메인 배너 이미지 URL</label><input type="text" id="set-main-image" class="form-input"></div>
 
             <div class="form-section-title">상단 배너 (블랙 박스)</div>
@@ -342,7 +305,7 @@
             <div class="form-section-title">캐릭터 설정 (5명 고정)</div>
             <div id="settings-character-container"></div>
 
-            <button class="btn-block" onclick="saveSettings()">적용 및 저장</button>
+            <button class="btn-block" id="btn-save-settings" onclick="saveSettings()">서버에 저장 및 적용</button>
         </div>
     </div>
 
@@ -360,7 +323,11 @@
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal('login-modal')"></i>
             <h2 style="margin-bottom: 20px; color:var(--accent);"><i class="fa-solid fa-shield-halved"></i> Security</h2>
             <div class="form-group">
-                <label>PASSWORD (테스트 비번: 1234)</label>
+                <label>ADMIN EMAIL</label>
+                <input type="email" id="login-email" class="form-input" placeholder="admin@system.com">
+            </div>
+            <div class="form-group">
+                <label>PASSWORD</label>
                 <input type="password" id="login-pw" class="form-input" placeholder="비밀번호" onkeyup="if(event.key === 'Enter') attemptLogin()">
             </div>
             <button class="btn-block" onclick="attemptLogin()">AUTHORIZE</button>
@@ -368,6 +335,36 @@
     </div>
 
     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc, setDoc, getDoc, serverTimestamp, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // ★ [여기에 본인의 Firebase Config를 입력하세요] ★
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Firebase 초기화 로직
+        let app, auth, db;
+        let isFirebaseActive = false;
+        
+        try {
+            if(firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                isFirebaseActive = true;
+                console.log("Firebase Connected to Server!");
+            } else {
+                console.warn("Firebase Config가 설정되지 않았습니다. 현재 임시 로컬(Mock) 모드로 작동합니다.");
+            }
+        } catch(e) { console.error("Firebase 초기화 에러:", e); }
+
         const THEMES = {
             theme1: { bgBody: '#070B14', bgCard: '#0F172A', bgDark: '#020617', textMain: '#F8FAFC', textSub: '#94A3B8', accent: '#00F0FF', border: '#1E293B' },
             theme2: { bgBody: '#0F0514', bgCard: '#1A0B22', bgDark: '#05010A', textMain: '#FDF4FF', textSub: '#D8B4E2', accent: '#FF003C', border: '#3A1B4D' },
@@ -377,9 +374,8 @@
         };
 
         const DEFAULT_CONFIG = {
-            theme: "theme1",
-            siteName: "Candy Cider Lane",
-            mainText: "관리자 로그인 후 <b>[톱니바퀴]</b>를 눌러 테마 색상, 폰트 적용 확인, 카테고리 등을 편집하세요.",
+            theme: "theme1", siteName: "Candy Cider Lane",
+            mainText: "관리자 로그인 후 <b>[톱니바퀴]</b>를 눌러 테마 색상, 폰트 적용 확인, 카테고리 등을 편집하세요. 이 내용은 모두 파이어베이스 서버에 안전하게 저장됩니다.",
             mainImage: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2400&auto=format&fit=crop",
             banner: { title: "Resonance Status: Stable", subtitle: "Current Sync Rate: 97.8% // No Anomalies", ddayLabel: "PAIRING DURATION", ddayValue: "D - 312" },
             bgm: { youtubeId: "jfKfPfyJRdk", title: "Christmas Theme BGM", artist: "DreamSomRain" },
@@ -393,71 +389,74 @@
             ]
         };
 
-        let currentConfig = JSON.parse(localStorage.getItem('sfSiteConfig')) || DEFAULT_CONFIG;
+        let currentConfig = DEFAULT_CONFIG;
         let activeCategoryFilter = "ALL"; 
+        let isAdmin = false; 
+        let mockPosts = [];
+
+        // 1. 앱 초기화 (파이어베이스 설정 불러오기)
+        async function initApp() {
+            if(isFirebaseActive) {
+                try {
+                    const snap = await getDoc(doc(db, "settings", "main"));
+                    if(snap.exists()) {
+                        currentConfig = snap.data();
+                    } else {
+                        // 최초 세팅 시 서버에 기본값 생성
+                        await setDoc(doc(db, "settings", "main"), DEFAULT_CONFIG);
+                        currentConfig = DEFAULT_CONFIG;
+                    }
+                } catch(e) { console.error("설정 로드 실패:", e); }
+            } else {
+                currentConfig = JSON.parse(localStorage.getItem('sfSiteConfig')) || DEFAULT_CONFIG;
+            }
+            
+            applyConfigToUI();
+            updateUI();
+            
+            // 로그인 상태 체크
+            if(isFirebaseActive) {
+                onAuthStateChanged(auth, (user) => {
+                    isAdmin = !!user;
+                    updateUI();
+                });
+            }
+        }
 
         function applyThemeColor(themeKey) {
             const t = THEMES[themeKey] || THEMES.theme1;
             const root = document.documentElement;
-            root.style.setProperty('--bg-body', t.bgBody);
-            root.style.setProperty('--bg-card', t.bgCard);
-            root.style.setProperty('--bg-dark', t.bgDark);
-            root.style.setProperty('--text-main', t.textMain);
-            root.style.setProperty('--text-sub', t.textSub);
-            root.style.setProperty('--accent', t.accent);
-            root.style.setProperty('--border-color', t.border);
+            root.style.setProperty('--bg-body', t.bgBody); root.style.setProperty('--bg-card', t.bgCard); root.style.setProperty('--bg-dark', t.bgDark); root.style.setProperty('--text-main', t.textMain); root.style.setProperty('--text-sub', t.textSub); root.style.setProperty('--accent', t.accent); root.style.setProperty('--border-color', t.border);
         }
 
         function applyConfigToUI() {
             applyThemeColor(currentConfig.theme);
-            
             document.getElementById('ui-site-name').innerHTML = currentConfig.siteName;
-            document.getElementById('ui-banner-title').innerHTML = currentConfig.banner.title;
-            document.getElementById('ui-banner-sub').innerHTML = currentConfig.banner.subtitle;
-            document.getElementById('ui-banner-dday-label').innerHTML = currentConfig.banner.ddayLabel;
-            document.getElementById('ui-banner-dday-val').innerHTML = currentConfig.banner.ddayValue;
+            document.getElementById('ui-banner-title').innerHTML = currentConfig.banner.title; document.getElementById('ui-banner-sub').innerHTML = currentConfig.banner.subtitle; document.getElementById('ui-banner-dday-label').innerHTML = currentConfig.banner.ddayLabel; document.getElementById('ui-banner-dday-val').innerHTML = currentConfig.banner.ddayValue;
             document.getElementById('ui-main-text').innerHTML = currentConfig.mainText;
             document.getElementById('ui-main-image').style.backgroundImage = `url('${currentConfig.mainImage}')`;
-            document.getElementById('ui-bgm-title').innerHTML = currentConfig.bgm.title;
-            document.getElementById('ui-bgm-artist').innerHTML = currentConfig.bgm.artist;
+            document.getElementById('ui-bgm-title').innerHTML = currentConfig.bgm.title; document.getElementById('ui-bgm-artist').innerHTML = currentConfig.bgm.artist;
 
-            const charContainer = document.getElementById('character-container');
-            charContainer.innerHTML = '';
+            const charContainer = document.getElementById('character-container'); charContainer.innerHTML = '';
             currentConfig.characters.forEach((char) => {
-                const card = document.createElement('div');
-                card.className = 'char-card';
+                const card = document.createElement('div'); card.className = 'char-card';
                 card.innerHTML = `<div class="char-img" style="background-image: url('${char.image}')"></div><div class="char-info-overlay"><div class="char-name">${char.name}</div></div>`;
-                card.onclick = () => {
-                    document.getElementById('modal-char-img').style.backgroundImage = `url('${char.image}')`;
-                    document.getElementById('modal-char-name').innerText = char.name;
-                    document.getElementById('modal-char-desc').innerText = char.desc;
-                    window.openModal('char-modal');
-                };
+                card.onclick = () => { document.getElementById('modal-char-img').style.backgroundImage = `url('${char.image}')`; document.getElementById('modal-char-name').innerText = char.name; document.getElementById('modal-char-desc').innerText = char.desc; window.openModal('char-modal'); };
                 charContainer.appendChild(card);
             });
 
-            renderCategorySidebar(); 
-            populateCategorySelect(); 
-
-            if(window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') {
-                window.ytPlayer.loadVideoById({videoId: currentConfig.bgm.youtubeId});
-                window.stopBGM();
-            }
+            renderCategorySidebar(); populateCategorySelect(); 
+            if(window.ytPlayer && typeof window.ytPlayer.loadVideoById === 'function') { window.ytPlayer.loadVideoById({videoId: currentConfig.bgm.youtubeId}); window.stopBGM(); }
         }
 
         function parseCategories(catText) {
             const lines = catText.split('\n').map(l => l.trim()).filter(l => l !== '');
-            let parsed = [];
-            let currentMain = null;
+            let parsed = []; let currentMain = null;
             lines.forEach(line => {
                 if(line.startsWith('- ')) {
                     const subName = line.replace('- ', '').trim();
-                    if(currentMain) currentMain.subs.push(subName);
-                    else parsed.push({ main: "Uncategorized", subs: [subName] }); 
-                } else {
-                    currentMain = { main: line, subs: [] };
-                    parsed.push(currentMain);
-                }
+                    if(currentMain) currentMain.subs.push(subName); else parsed.push({ main: "Uncategorized", subs: [subName] }); 
+                } else { currentMain = { main: line, subs: [] }; parsed.push(currentMain); }
             });
             return parsed;
         }
@@ -468,9 +467,7 @@
             const cats = parseCategories(currentConfig.categoriesText);
             cats.forEach(c => {
                 container.innerHTML += `<div class="cat-item" onclick="filterCategory('${c.main}')"><i class="fa-solid fa-folder"></i> ${c.main}</div>`;
-                c.subs.forEach(sub => {
-                    container.innerHTML += `<div class="cat-item cat-sub" onclick="filterCategory('${sub}')">- ${sub}</div>`;
-                });
+                c.subs.forEach(sub => { container.innerHTML += `<div class="cat-item cat-sub" onclick="filterCategory('${sub}')">- ${sub}</div>`; });
             });
         }
 
@@ -478,102 +475,84 @@
             const select = document.getElementById('write-category');
             select.innerHTML = `<option value="일반">선택 안 함 (일반)</option>`;
             const cats = parseCategories(currentConfig.categoriesText);
-            cats.forEach(c => {
-                select.innerHTML += `<option value="${c.main}">[${c.main}]</option>`;
-                c.subs.forEach(sub => { select.innerHTML += `<option value="${sub}">&nbsp;&nbsp;- ${sub}</option>`; });
-            });
+            cats.forEach(c => { select.innerHTML += `<option value="${c.main}">[${c.main}]</option>`; c.subs.forEach(sub => { select.innerHTML += `<option value="${sub}">&nbsp;&nbsp;- ${sub}</option>`; }); });
         }
 
         window.filterCategory = (catName) => {
             activeCategoryFilter = catName;
             document.getElementById('current-category-title').innerText = catName === 'ALL' ? 'ALL LOGS' : `[ ${catName} ]`;
-            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('active')); event.currentTarget.classList.add('active');
             fetchPosts();
         };
 
+        // 설정 저장 (Firebase 연동)
         window.openSettingsModal = () => {
-            document.getElementById('set-theme-color').value = currentConfig.theme || 'theme1';
-            document.getElementById('set-categories').value = currentConfig.categoriesText || '';
-            document.getElementById('set-site-name').value = currentConfig.siteName;
-            document.getElementById('set-main-text').value = currentConfig.mainText;
-            document.getElementById('set-main-image').value = currentConfig.mainImage;
-            document.getElementById('set-banner-title').value = currentConfig.banner.title;
-            document.getElementById('set-banner-sub').value = currentConfig.banner.subtitle;
-            document.getElementById('set-dday-label').value = currentConfig.banner.ddayLabel;
-            document.getElementById('set-dday-val').value = currentConfig.banner.ddayValue;
-            document.getElementById('set-bgm-id').value = currentConfig.bgm.youtubeId;
-            document.getElementById('set-bgm-title').value = currentConfig.bgm.title;
-            document.getElementById('set-bgm-artist').value = currentConfig.bgm.artist;
-
+            document.getElementById('set-theme-color').value = currentConfig.theme || 'theme1'; document.getElementById('set-categories').value = currentConfig.categoriesText || ''; document.getElementById('set-site-name').value = currentConfig.siteName; document.getElementById('set-main-text').value = currentConfig.mainText; document.getElementById('set-main-image').value = currentConfig.mainImage; document.getElementById('set-banner-title').value = currentConfig.banner.title; document.getElementById('set-banner-sub').value = currentConfig.banner.subtitle; document.getElementById('set-dday-label').value = currentConfig.banner.ddayLabel; document.getElementById('set-dday-val').value = currentConfig.banner.ddayValue; document.getElementById('set-bgm-id').value = currentConfig.bgm.youtubeId; document.getElementById('set-bgm-title').value = currentConfig.bgm.title; document.getElementById('set-bgm-artist').value = currentConfig.bgm.artist;
             const cContainer = document.getElementById('settings-character-container'); cContainer.innerHTML = '';
             currentConfig.characters.forEach((char, i) => {
-                cContainer.innerHTML += `
-                    <div style="background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid var(--border-color);">
-                        <h4 style="margin-bottom:10px; font-size:13px; color:var(--accent);"># SUBJECT 0${i+1}</h4>
-                        <div class="form-group"><label>이름</label><input type="text" id="set-char-name-${i}" class="form-input" value="${char.name}"></div>
-                        <div class="form-group"><label>이미지 URL</label><input type="text" id="set-char-img-${i}" class="form-input" value="${char.image}"></div>
-                        <div class="form-group"><label>설명</label><input type="text" id="set-char-desc-${i}" class="form-input" value="${char.desc}"></div>
-                    </div>`;
+                cContainer.innerHTML += `<div style="background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid var(--border-color);"><h4 style="margin-bottom:10px; font-size:13px; color:var(--accent);"># SUBJECT 0${i+1}</h4><div class="form-group"><label>이름</label><input type="text" id="set-char-name-${i}" class="form-input" value="${char.name}"></div><div class="form-group"><label>이미지 URL</label><input type="text" id="set-char-img-${i}" class="form-input" value="${char.image}"></div><div class="form-group"><label>설명</label><input type="text" id="set-char-desc-${i}" class="form-input" value="${char.desc}"></div></div>`;
             });
             window.openModal('settings-modal');
         };
 
-        window.saveSettings = () => {
-            currentConfig.theme = document.getElementById('set-theme-color').value;
-            currentConfig.categoriesText = document.getElementById('set-categories').value;
-            currentConfig.siteName = document.getElementById('set-site-name').value;
-            currentConfig.mainText = document.getElementById('set-main-text').value;
-            currentConfig.mainImage = document.getElementById('set-main-image').value;
-            currentConfig.banner.title = document.getElementById('set-banner-title').value;
-            currentConfig.banner.subtitle = document.getElementById('set-banner-sub').value;
-            currentConfig.banner.ddayLabel = document.getElementById('set-dday-label').value;
-            currentConfig.banner.ddayValue = document.getElementById('set-dday-val').value;
-            currentConfig.bgm.youtubeId = document.getElementById('set-bgm-id').value;
-            currentConfig.bgm.title = document.getElementById('set-bgm-title').value;
-            currentConfig.bgm.artist = document.getElementById('set-bgm-artist').value;
-
-            for(let i=0; i<5; i++) {
-                currentConfig.characters[i].name = document.getElementById(`set-char-name-${i}`).value;
-                currentConfig.characters[i].image = document.getElementById(`set-char-img-${i}`).value;
-                currentConfig.characters[i].desc = document.getElementById(`set-char-desc-${i}`).value;
-            }
-
-            localStorage.setItem('sfSiteConfig', JSON.stringify(currentConfig));
-            applyConfigToUI(); window.closeModal('settings-modal'); alert("SYSTEM UPDATED.");
-        };
-
-
-        // ================= 게시판 및 이미지 첨부 (URL 링크 방식) =================
-        let isAdmin = false; 
-        let mockPosts = JSON.parse(localStorage.getItem('sfPostsData')) || [];
-
-        window.previewImageUrl = () => {
-            const url = document.getElementById('write-img-url').value;
-            const preview = document.getElementById('write-img-preview');
-            if(url) {
-                preview.src = url;
-                preview.style.display = 'inline-block';
-            } else {
-                preview.style.display = 'none';
-                preview.src = '';
-            }
-        };
-
-        function fetchPosts() {
-            const container = document.getElementById('post-list-container'); container.innerHTML = '';
+        window.saveSettings = async () => {
+            document.getElementById('btn-save-settings').innerText = "저장 중...";
             
-            const filteredPosts = activeCategoryFilter === "ALL" 
-                ? mockPosts 
-                : mockPosts.filter(p => p.category === activeCategoryFilter);
+            currentConfig.theme = document.getElementById('set-theme-color').value; currentConfig.categoriesText = document.getElementById('set-categories').value; currentConfig.siteName = document.getElementById('set-site-name').value; currentConfig.mainText = document.getElementById('set-main-text').value; currentConfig.mainImage = document.getElementById('set-main-image').value; currentConfig.banner.title = document.getElementById('set-banner-title').value; currentConfig.banner.subtitle = document.getElementById('set-banner-sub').value; currentConfig.banner.ddayLabel = document.getElementById('set-dday-label').value; currentConfig.banner.ddayValue = document.getElementById('set-dday-val').value; currentConfig.bgm.youtubeId = document.getElementById('set-bgm-id').value; currentConfig.bgm.title = document.getElementById('set-bgm-title').value; currentConfig.bgm.artist = document.getElementById('set-bgm-artist').value;
+            for(let i=0; i<5; i++) { currentConfig.characters[i].name = document.getElementById(`set-char-name-${i}`).value; currentConfig.characters[i].image = document.getElementById(`set-char-img-${i}`).value; currentConfig.characters[i].desc = document.getElementById(`set-char-desc-${i}`).value; }
 
+            if(isFirebaseActive) {
+                try {
+                    await setDoc(doc(db, "settings", "main"), currentConfig);
+                    alert("서버에 설정이 성공적으로 저장되었습니다.");
+                } catch(e) { alert("서버 저장 실패: " + e.message); }
+            } else {
+                localStorage.setItem('sfSiteConfig', JSON.stringify(currentConfig));
+            }
+            
+            applyConfigToUI(); 
+            window.closeModal('settings-modal'); 
+            document.getElementById('btn-save-settings').innerText = "서버에 저장 및 적용";
+        };
+
+        // ================= 게시판 (Firebase 연동) =================
+        window.previewImageUrl = () => {
+            const url = document.getElementById('write-img-url').value; const preview = document.getElementById('write-img-preview');
+            if(url) { preview.src = url; preview.style.display = 'inline-block'; } else { preview.style.display = 'none'; preview.src = ''; }
+        };
+
+        async function fetchPosts() {
+            const container = document.getElementById('post-list-container'); container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-sub);">데이터 로딩 중...</p>';
+            
+            let posts = [];
+            if(isFirebaseActive) {
+                try {
+                    const q = query(collection(db, "logs"), orderBy("createdAt", "desc"));
+                    const qs = await getDocs(q);
+                    qs.forEach(d => {
+                        let data = d.data();
+                        let dateStr = "방금 전";
+                        if(data.createdAt && data.createdAt.toDate) {
+                            const dObj = data.createdAt.toDate();
+                            dateStr = `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}-${String(dObj.getDate()).padStart(2,'0')} ${String(dObj.getHours()).padStart(2,'0')}:${String(dObj.getMinutes()).padStart(2,'0')}`;
+                        }
+                        posts.push({ id: d.id, ...data, date: dateStr });
+                    });
+                } catch(e) { console.error("게시글 불러오기 실패", e); }
+            } else {
+                posts = JSON.parse(localStorage.getItem('sfPostsData')) || [];
+            }
+
+            const filteredPosts = activeCategoryFilter === "ALL" ? posts : posts.filter(p => p.category === activeCategoryFilter);
+
+            container.innerHTML = '';
             if(filteredPosts.length === 0) { container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-sub);">검색된 로그가 없습니다.</p>'; return; }
             
             filteredPosts.forEach(p => {
-                // 섬네일 처리 (이미지가 있으면 표출, 없으면 숨김)
                 let thumbHtml = p.image ? `<div class="post-thumb" style="background-image: url('${p.image}')"></div>` : '';
                 let catBadge = p.category ? `<span class="post-cat-badge">${p.category}</span>` : '';
-
+                
+                // 데이터 안전성을 위해 본문 일부만 추출하는 로직은 제거 (디자인 요구사항에 따름)
                 container.innerHTML += `
                     <div class="post-item">
                         <div class="post-item-content" onclick="openViewPage('${p.id}')">
@@ -590,126 +569,89 @@
                         </div>
                     </div>`;
             });
+            
+            // 전역 변수에 현재 불러온 포스트 저장 (열람용)
+            mockPosts = posts; 
         }
 
-        // 새 글 쓰기
-        window.openWritePage = () => {
-            document.getElementById('write-page-title').innerText = "NEW SYSTEM LOG";
-            document.getElementById('write-post-id').value = "";
-            document.getElementById('write-category').value = "일반";
-            document.getElementById('write-title').value = "";
-            document.getElementById('write-content').value = "";
-            document.getElementById('write-img-url').value = "";
-            document.getElementById('write-img-preview').style.display = "none";
-            document.getElementById('write-img-preview').src = "";
-            
-            switchTab('write');
-        };
+        window.openWritePage = () => { document.getElementById('write-page-title').innerText = "NEW SYSTEM LOG"; document.getElementById('write-post-id').value = ""; document.getElementById('write-category').value = "일반"; document.getElementById('write-title').value = ""; document.getElementById('write-content').value = ""; document.getElementById('write-img-url').value = ""; document.getElementById('write-img-preview').style.display = "none"; document.getElementById('write-img-preview').src = ""; switchTab('write'); };
 
-        // 글 수정하기
         window.openEditPage = (id) => { 
             const p = mockPosts.find(x => x.id === id); 
             if(p) { 
-                document.getElementById('write-page-title').innerText = "EDIT SYSTEM LOG";
-                document.getElementById('write-post-id').value = p.id; 
-                document.getElementById('write-category').value = p.category || "일반";
-                document.getElementById('write-title').value = p.title; 
-                document.getElementById('write-content').value = p.content; 
-                
-                document.getElementById('write-img-url').value = p.image || "";
-                if(p.image) {
-                    document.getElementById('write-img-preview').src = p.image;
-                    document.getElementById('write-img-preview').style.display = "inline-block";
-                } else {
-                    document.getElementById('write-img-preview').style.display = "none";
-                }
-                
+                document.getElementById('write-page-title').innerText = "EDIT SYSTEM LOG"; document.getElementById('write-post-id').value = p.id; document.getElementById('write-category').value = p.category || "일반"; document.getElementById('write-title').value = p.title; document.getElementById('write-content').value = p.content; document.getElementById('write-img-url').value = p.image || "";
+                if(p.image) { document.getElementById('write-img-preview').src = p.image; document.getElementById('write-img-preview').style.display = "inline-block"; } else { document.getElementById('write-img-preview').style.display = "none"; }
                 switchTab('write');
             } 
         };
         
-        // 글 저장하기
-        window.savePost = () => {
-            const title = document.getElementById('write-title').value; 
-            const content = document.getElementById('write-content').value; 
-            const category = document.getElementById('write-category').value;
-            const imageUrl = document.getElementById('write-img-url').value; 
-            const id = document.getElementById('write-post-id').value;
-            
+        window.savePost = async () => {
+            const title = document.getElementById('write-title').value; const content = document.getElementById('write-content').value; const category = document.getElementById('write-category').value; const imageUrl = document.getElementById('write-img-url').value; const id = document.getElementById('write-post-id').value;
             if(!title || !content) { alert('제목과 내용을 입력하십시오.'); return; }
+            document.getElementById('btn-save-post').innerText = "업로드 중...";
+
+            if(isFirebaseActive) {
+                try {
+                    if(id) { await updateDoc(doc(db,"logs",id), {title, content, category, image: imageUrl}); } 
+                    else { await addDoc(collection(db,"logs"), {title, content, category, image: imageUrl, createdAt: serverTimestamp()}); }
+                } catch(e) { alert("업로드 실패: " + e.message); }
+            } else {
+                if(id) { const i = mockPosts.findIndex(x=>x.id===id); if(i>-1) { mockPosts[i].title = title; mockPosts[i].content = content; mockPosts[i].category = category; mockPosts[i].image = imageUrl; } }
+                else { const d = new Date(); const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; mockPosts.unshift({ id: Date.now().toString(), category, title, content, image: imageUrl, date: dateStr }); }
+                localStorage.setItem('sfPostsData', JSON.stringify(mockPosts)); 
+            }
             
-            if(id) { 
-                const i = mockPosts.findIndex(x=>x.id===id); 
-                if(i>-1) { 
-                    mockPosts[i].title = title; 
-                    mockPosts[i].content = content; 
-                    mockPosts[i].category = category;
-                    mockPosts[i].image = imageUrl;
-                } 
-            }
-            else { 
-                const d = new Date(); const dateStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                mockPosts.unshift({ id: Date.now().toString(), category, title, content, image: imageUrl, date: dateStr }); 
-            }
-            localStorage.setItem('sfPostsData', JSON.stringify(mockPosts)); 
-            switchTab('logs');
-            fetchPosts();
+            document.getElementById('btn-save-post').innerHTML = '<i class="fa-solid fa-upload"></i> UPLOAD DATA';
+            switchTab('logs'); fetchPosts();
         };
 
-        // 글 삭제
-        window.deletePost = (id) => { if(!confirm("DATA DELETION. 계속하시겠습니까?")) return; mockPosts = mockPosts.filter(x=>x.id!==id); localStorage.setItem('sfPostsData', JSON.stringify(mockPosts)); fetchPosts(); };
+        window.deletePost = async (id) => { 
+            if(!confirm("DATA DELETION. 서버에서 영구적으로 삭제됩니다. 계속하시겠습니까?")) return; 
+            if(isFirebaseActive) { await deleteDoc(doc(db,"logs",id)); }
+            else { mockPosts = mockPosts.filter(x=>x.id!==id); localStorage.setItem('sfPostsData', JSON.stringify(mockPosts)); }
+            fetchPosts(); 
+        };
 
-        // ================= 글 열람 전용 페이지 =================
         window.openViewPage = (id) => {
             const p = mockPosts.find(x => x.id === id);
             if(p) {
-                document.getElementById('view-page-title').innerText = p.title;
-                document.getElementById('view-page-cat').innerText = p.category || '일반';
-                document.getElementById('view-page-date').innerText = p.date;
-                document.getElementById('view-page-content').innerHTML = p.content.replace(/\n/g, '<br>');
-                
-                const imgEl = document.getElementById('view-page-img');
-                if(p.image) {
-                    imgEl.src = p.image;
-                    imgEl.style.display = 'block';
-                } else {
-                    imgEl.src = '';
-                    imgEl.style.display = 'none';
-                }
-
-                // 관리자용 액션버튼 (수정/삭제)
+                document.getElementById('view-page-title').innerText = p.title; document.getElementById('view-page-cat').innerText = p.category || '일반'; document.getElementById('view-page-date').innerText = p.date; document.getElementById('view-page-content').innerHTML = p.content.replace(/\n/g, '<br>');
+                const imgEl = document.getElementById('view-page-img'); if(p.image) { imgEl.src = p.image; imgEl.style.display = 'block'; } else { imgEl.src = ''; imgEl.style.display = 'none'; }
                 const actionContainer = document.getElementById('view-admin-actions');
-                if(isAdmin) {
-                    actionContainer.innerHTML = `
-                        <button class="btn-sm" onclick="openEditPage('${p.id}')">EDIT</button>
-                        <button class="btn-sm danger" onclick="deletePost('${p.id}'); switchTab('logs');">DELETE</button>
-                    `;
-                }
-
+                if(isAdmin) { actionContainer.innerHTML = `<button class="btn-sm" onclick="openEditPage('${p.id}')">EDIT</button><button class="btn-sm danger" onclick="deletePost('${p.id}'); switchTab('logs');">DELETE</button>`; }
                 switchTab('view');
             }
         };
 
-        // ================= 공통 로직 =================
+        // ================= 공통 제어 로직 =================
         window.ytPlayer = null; let isPlaying = false;
         window.onYouTubeIframeAPIReady = function() { window.ytPlayer = new YT.Player('youtube-player', { height: '0', width: '0', videoId: currentConfig.bgm.youtubeId, playerVars: { 'autoplay': 0, 'controls': 0, 'loop': 1, 'playlist': currentConfig.bgm.youtubeId } }); };
         window.toggleBGM = () => { if(!window.ytPlayer || !window.ytPlayer.playVideo) return; const btn = document.getElementById('bgm-play-btn'); const vinyl = document.getElementById('vinyl-disk'); if(isPlaying) { window.ytPlayer.pauseVideo(); btn.className = 'fa-solid fa-play'; vinyl.classList.remove('playing'); } else { window.ytPlayer.playVideo(); btn.className = 'fa-solid fa-pause'; vinyl.classList.add('playing'); } isPlaying = !isPlaying; };
         window.stopBGM = () => { if(!window.ytPlayer || !window.ytPlayer.stopVideo) return; window.ytPlayer.stopVideo(); isPlaying = false; document.getElementById('bgm-play-btn').className = 'fa-solid fa-play'; document.getElementById('vinyl-disk').classList.remove('playing'); };
 
-        window.switchTab = (tabId) => {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            const targetBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
-            if(targetBtn) targetBtn.classList.add('active'); 
-            
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.getElementById(`section-${tabId}`).classList.add('active');
-        };
-        
+        window.switchTab = (tabId) => { document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); const targetBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`); if(targetBtn) targetBtn.classList.add('active'); document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active')); document.getElementById(`section-${tabId}`).classList.add('active'); };
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
-        window.attemptLogin = () => { const pw = document.getElementById('login-pw').value; if(pw === '1234') { isAdmin = true; window.closeModal('login-modal'); updateUI(); } else { alert("ACCESS DENIED"); } document.getElementById('login-pw').value = ''; };
-        window.attemptLogout = () => { isAdmin = false; updateUI(); switchTab('dash'); }; 
+        window.attemptLogin = async () => { 
+            const email = document.getElementById('login-email').value;
+            const pw = document.getElementById('login-pw').value; 
+            
+            if(isFirebaseActive) {
+                try {
+                    await signInWithEmailAndPassword(auth, email, pw);
+                    alert("인증 완료"); window.closeModal('login-modal');
+                } catch(e) { alert("이메일 혹은 비밀번호 오류"); }
+            } else {
+                if(pw === '1234') { isAdmin = true; window.closeModal('login-modal'); updateUI(); } else { alert("ACCESS DENIED (테스트 비번 1234)"); } 
+            }
+            document.getElementById('login-pw').value = ''; 
+        };
+        
+        window.attemptLogout = async () => { 
+            if(isFirebaseActive) { await signOut(auth); } 
+            else { isAdmin = false; updateUI(); switchTab('dash'); }
+        }; 
 
         function updateUI() {
             const btn = document.getElementById('admin-login-btn');
@@ -717,24 +659,18 @@
                 btn.classList.add('fa-door-open', 'logged-in'); btn.classList.remove('fa-user-astronaut'); 
                 btn.onclick = window.attemptLogout; btn.title = "Logout";
                 document.querySelectorAll('.auth-only').forEach(el => el.style.display = 'inline-block');
-                
-                // view 페이지용 관리자 버튼
-                const viewAdminActions = document.getElementById('view-admin-actions');
-                if(viewAdminActions) viewAdminActions.style.display = 'flex';
-                
+                const viewAdminActions = document.getElementById('view-admin-actions'); if(viewAdminActions) viewAdminActions.style.display = 'flex';
             } else {
                 btn.classList.add('fa-user-astronaut'); btn.classList.remove('fa-door-open', 'logged-in'); 
                 btn.onclick = () => window.openModal('login-modal'); btn.title = "Admin Login";
                 document.querySelectorAll('.auth-only').forEach(el => el.style.display = 'none');
-                
-                const viewAdminActions = document.getElementById('view-admin-actions');
-                if(viewAdminActions) viewAdminActions.style.display = 'none';
+                const viewAdminActions = document.getElementById('view-admin-actions'); if(viewAdminActions) viewAdminActions.style.display = 'none';
             }
             fetchPosts(); 
         }
 
-        applyConfigToUI();
-        updateUI();
+        // 앱 최초 구동
+        initApp();
     </script>
 </body>
 </html>
