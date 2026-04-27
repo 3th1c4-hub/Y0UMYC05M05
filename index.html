@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Rendezvous</title>
+    <title>Customizable Bento UI - SF Edition</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -322,13 +322,10 @@
         <div class="modal-content" style="max-width: 400px;">
             <i class="fa-solid fa-xmark modal-close" onclick="closeModal('login-modal')"></i>
             <h2 style="margin-bottom: 20px; color:var(--accent);"><i class="fa-solid fa-shield-halved"></i> Security</h2>
+            
             <div class="form-group">
-                <label>ADMIN EMAIL</label>
-                <input type="email" id="login-email" class="form-input" placeholder="admin@system.com">
-            </div>
-            <div class="form-group">
-                <label>PASSWORD</label>
-                <input type="password" id="login-pw" class="form-input" placeholder="비밀번호" onkeyup="if(event.key === 'Enter') attemptLogin()">
+                <label>ACCESS PASSWORD</label>
+                <input type="password" id="login-pw" class="form-input" placeholder="비밀번호를 입력하세요" onkeyup="if(event.key === 'Enter') attemptLogin()">
             </div>
             <button class="btn-block" onclick="attemptLogin()">AUTHORIZE</button>
         </div>
@@ -351,7 +348,6 @@
   measurementId: "G-R2MWDHKTG2"
         };
 
-        // Firebase 초기화 로직
         let app, auth, db;
         let isFirebaseActive = false;
         
@@ -361,9 +357,6 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
                 isFirebaseActive = true;
-                console.log("Firebase Connected to Server!");
-            } else {
-                console.warn("Firebase Config가 설정되지 않았습니다. 현재 임시 로컬(Mock) 모드로 작동합니다.");
             }
         } catch(e) { console.error("Firebase 초기화 에러:", e); }
 
@@ -404,11 +397,11 @@
                     if(snap.exists()) {
                         currentConfig = snap.data();
                     } else {
-                        // 최초 세팅 시 서버에 기본값 생성
+                        // 최초 1회 빈 껍데기 세팅
                         await setDoc(doc(db, "settings", "main"), DEFAULT_CONFIG);
                         currentConfig = DEFAULT_CONFIG;
                     }
-                } catch(e) { console.error("설정 로드 실패:", e); }
+                } catch(e) { console.error("서버 설정 로드 실패 (규칙을 확인하세요):", e); }
             } else {
                 currentConfig = JSON.parse(localStorage.getItem('sfSiteConfig')) || DEFAULT_CONFIG;
             }
@@ -416,7 +409,6 @@
             applyConfigToUI();
             updateUI();
             
-            // 로그인 상태 체크
             if(isFirebaseActive) {
                 onAuthStateChanged(auth, (user) => {
                     isAdmin = !!user;
@@ -487,7 +479,7 @@
             fetchPosts();
         };
 
-        // 설정 저장 (Firebase 연동)
+        // 설정 모달 열기
         window.openSettingsModal = () => {
             document.getElementById('set-theme-color').value = currentConfig.theme || 'theme1'; document.getElementById('set-categories').value = currentConfig.categoriesText || ''; document.getElementById('set-site-name').value = currentConfig.siteName; document.getElementById('set-main-text').value = currentConfig.mainText; document.getElementById('set-main-image').value = currentConfig.mainImage; document.getElementById('set-banner-title').value = currentConfig.banner.title; document.getElementById('set-banner-sub').value = currentConfig.banner.subtitle; document.getElementById('set-dday-label').value = currentConfig.banner.ddayLabel; document.getElementById('set-dday-val').value = currentConfig.banner.ddayValue; document.getElementById('set-bgm-id').value = currentConfig.bgm.youtubeId; document.getElementById('set-bgm-title').value = currentConfig.bgm.title; document.getElementById('set-bgm-artist').value = currentConfig.bgm.artist;
             const cContainer = document.getElementById('settings-character-container'); cContainer.innerHTML = '';
@@ -497,24 +489,34 @@
             window.openModal('settings-modal');
         };
 
+        // 설정 저장 로직 (오류 팝업 기능 강화)
         window.saveSettings = async () => {
-            document.getElementById('btn-save-settings').innerText = "저장 중...";
+            const btn = document.getElementById('btn-save-settings');
+            btn.innerText = "서버에 저장 중...";
             
-            currentConfig.theme = document.getElementById('set-theme-color').value; currentConfig.categoriesText = document.getElementById('set-categories').value; currentConfig.siteName = document.getElementById('set-site-name').value; currentConfig.mainText = document.getElementById('set-main-text').value; currentConfig.mainImage = document.getElementById('set-main-image').value; currentConfig.banner.title = document.getElementById('set-banner-title').value; currentConfig.banner.subtitle = document.getElementById('set-banner-sub').value; currentConfig.banner.ddayLabel = document.getElementById('set-dday-label').value; currentConfig.banner.ddayValue = document.getElementById('set-dday-val').value; currentConfig.bgm.youtubeId = document.getElementById('set-bgm-id').value; currentConfig.bgm.title = document.getElementById('set-bgm-title').value; currentConfig.bgm.artist = document.getElementById('set-bgm-artist').value;
-            for(let i=0; i<5; i++) { currentConfig.characters[i].name = document.getElementById(`set-char-name-${i}`).value; currentConfig.characters[i].image = document.getElementById(`set-char-img-${i}`).value; currentConfig.characters[i].desc = document.getElementById(`set-char-desc-${i}`).value; }
+            // 임시 객체에 데이터 담기
+            let tempConfig = JSON.parse(JSON.stringify(currentConfig)); // 깊은 복사
+            tempConfig.theme = document.getElementById('set-theme-color').value; tempConfig.categoriesText = document.getElementById('set-categories').value; tempConfig.siteName = document.getElementById('set-site-name').value; tempConfig.mainText = document.getElementById('set-main-text').value; tempConfig.mainImage = document.getElementById('set-main-image').value; tempConfig.banner.title = document.getElementById('set-banner-title').value; tempConfig.banner.subtitle = document.getElementById('set-banner-sub').value; tempConfig.banner.ddayLabel = document.getElementById('set-dday-label').value; tempConfig.banner.ddayValue = document.getElementById('set-dday-val').value; tempConfig.bgm.youtubeId = document.getElementById('set-bgm-id').value; tempConfig.bgm.title = document.getElementById('set-bgm-title').value; tempConfig.bgm.artist = document.getElementById('set-bgm-artist').value;
+            for(let i=0; i<5; i++) { tempConfig.characters[i].name = document.getElementById(`set-char-name-${i}`).value; tempConfig.characters[i].image = document.getElementById(`set-char-img-${i}`).value; tempConfig.characters[i].desc = document.getElementById(`set-char-desc-${i}`).value; }
 
             if(isFirebaseActive) {
                 try {
-                    await setDoc(doc(db, "settings", "main"), currentConfig);
-                    alert("서버에 설정이 성공적으로 저장되었습니다.");
-                } catch(e) { alert("서버 저장 실패: " + e.message); }
+                    // Firebase Firestore에 덮어쓰기
+                    await setDoc(doc(db, "settings", "main"), tempConfig);
+                    currentConfig = tempConfig;
+                    alert("시스템 설정이 서버에 성공적으로 저장되었습니다!");
+                } catch(error) { 
+                    console.error("Firestore Save Error: ", error);
+                    alert("서버 저장 실패!\n원인: " + error.message + "\n\n(파이어베이스의 Firestore가 생성되어 있고 규칙 설정이 올바른지 확인해주세요.)"); 
+                }
             } else {
+                currentConfig = tempConfig;
                 localStorage.setItem('sfSiteConfig', JSON.stringify(currentConfig));
             }
             
             applyConfigToUI(); 
             window.closeModal('settings-modal'); 
-            document.getElementById('btn-save-settings').innerText = "서버에 저장 및 적용";
+            btn.innerText = "서버에 저장 및 적용";
         };
 
         // ================= 게시판 (Firebase 연동) =================
@@ -524,7 +526,7 @@
         };
 
         async function fetchPosts() {
-            const container = document.getElementById('post-list-container'); container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-sub);">데이터 로딩 중...</p>';
+            const container = document.getElementById('post-list-container'); container.innerHTML = '<p style="text-align:center; padding:40px; color:var(--text-sub);">데이터 동기화 중...</p>';
             
             let posts = [];
             if(isFirebaseActive) {
@@ -554,7 +556,6 @@
                 let thumbHtml = p.image ? `<div class="post-thumb" style="background-image: url('${p.image}')"></div>` : '';
                 let catBadge = p.category ? `<span class="post-cat-badge">${p.category}</span>` : '';
                 
-                // 데이터 안전성을 위해 본문 일부만 추출하는 로직은 제거 (디자인 요구사항에 따름)
                 container.innerHTML += `
                     <div class="post-item">
                         <div class="post-item-content" onclick="openViewPage('${p.id}')">
@@ -572,7 +573,6 @@
                     </div>`;
             });
             
-            // 전역 변수에 현재 불러온 포스트 저장 (열람용)
             mockPosts = posts; 
         }
 
@@ -635,15 +635,16 @@
         window.openModal = (id) => document.getElementById(id).style.display = 'flex';
         window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
+        // ★ 수정된 로그인 기능 (이메일 숨김 / 비밀번호 단독 입력)
         window.attemptLogin = async () => { 
-            const email = document.getElementById('login-email').value;
+            const internalEmail = "admin@system.com"; // 가상의 내부 계정 아이디
             const pw = document.getElementById('login-pw').value; 
             
             if(isFirebaseActive) {
                 try {
-                    await signInWithEmailAndPassword(auth, email, pw);
-                    alert("인증 완료"); window.closeModal('login-modal');
-                } catch(e) { alert("이메일 혹은 비밀번호 오류"); }
+                    await signInWithEmailAndPassword(auth, internalEmail, pw);
+                    alert("인증 완료되었습니다."); window.closeModal('login-modal');
+                } catch(e) { alert("비밀번호가 틀렸습니다. (파이어베이스 설정을 확인해주세요)"); }
             } else {
                 if(pw === '1234') { isAdmin = true; window.closeModal('login-modal'); updateUI(); } else { alert("ACCESS DENIED (테스트 비번 1234)"); } 
             }
